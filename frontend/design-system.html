@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Design System</title>
+<style>
+  :root {
+    --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    --primary-navy: #0f172a;
+    --primary-blue: #1d4ed8;
+    --primary-blue-subtle: #eff6ff;
+
+    --bg-app: #f8fafc;
+    --bg-surface: #ffffff;
+
+    --welcome-hero-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #1e3a8a 100%);
+
+    --text-dark: #0f172a;
+    --text-body: #334155;
+    --text-muted: #64748b;
+
+    --border-light: #e2e8f0;
+    --border-subtle: #f1f5f9;
+
+    --success-bg: #dcfce7;
+    --success-text: #15803d;
+    --warning-bg: #fef3c7;
+    --warning-text: #b45309;
+    --info-bg: #dbeafe;
+    --info-text: #1e40af;
+    --danger-bg: #ffe4e6;
+    --danger-text: #be123c;
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: var(--font-family);
+    background: var(--bg-app);
+    color: var(--text-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hero {
+    background: var(--welcome-hero-gradient);
+    padding: 56px 48px;
+    color: #fff;
+  }
+  .hero h1 {
+    margin: 0 0 8px;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .hero p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 15px;
+    max-width: 560px;
+    line-height: 1.6;
+  }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 40px 48px 80px;
+  }
+
+  section { margin-bottom: 48px; }
+
+  h2 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 4px;
+  }
+  .section-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0 0 20px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .swatch {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .swatch-color {
+    height: 72px;
+  }
+  .swatch-meta {
+    padding: 10px 12px;
+  }
+  .swatch-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 2px;
+  }
+  .swatch-hex {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .swatch-usage {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 6px 0 0;
+    line-height: 1.4;
+  }
+
+  .status-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .status-approved { background: var(--success-bg); color: var(--success-text); }
+  .status-pending { background: var(--warning-bg); color: var(--warning-text); }
+  .status-active { background: var(--info-bg); color: var(--info-text); }
+  .status-rejected { background: var(--danger-bg); color: var(--danger-text); }
+
+  .type-row {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .type-row:last-child { border-bottom: none; }
+  .type-label {
+    width: 110px;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .type-dark { color: var(--text-dark); font-weight: 700; }
+  .type-body { color: var(--text-body); }
+  .type-muted { color: var(--text-muted); }
+
+  .radius-row, .shadow-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .radius-box, .shadow-box {
+    width: 120px;
+    height: 80px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    display: flex;
+    align-items: flex-end;
+    padding: 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .r-sm { border-radius: var(--radius-sm); }
+  .r-md { border-radius: var(--radius-md); }
+  .r-lg { border-radius: var(--radius-lg); }
+  .s-sm { box-shadow: var(--shadow-sm); border-radius: var(--radius-md); border-color: transparent; }
+  .s-md { box-shadow: var(--shadow-md); border-radius: var(--radius-md); border-color: transparent; }
+  .s-lg { box-shadow: var(--shadow-lg); border-radius: var(--radius-md); border-color: transparent; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 18px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: default;
+  }
+  .btn-primary { background: var(--primary-blue); color: #fff; }
+  .btn-subtle { background: var(--primary-blue-subtle); color: var(--primary-blue); }
+
+  .card-demo {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 20px;
+    max-width: 340px;
+  }
+  .card-demo h3 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    color: var(--text-dark);
+  }
+  .card-demo p {
+    margin: 0 0 14px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  th {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--bg-app);
+  }
+  td { color: var(--text-body); }
+  tr:last-child td { border-bottom: none; }
+</style>
+</head>
+<body>
+
+  <div class="hero">
+    <h1>Design System</h1>
+    <p>Tokens, colors, and component patterns for a clean government / enterprise application feel — modern, not templated.</p>
+  </div>
+
+  <div class="wrap">
+
+    <section>
+      <h2>Primary / Brand</h2>
+      <p class="section-sub">Header, navigation, CTAs, links, focus states.</p>
+      <div class="grid">
+        <div class="swatch">
+          <div class="swatch-color" style="background:#0f172a"></div>
+          <div class="swatch-meta">
+            <p class="swatch-name">Primary Navy</p>
+            <p class="swatch-hex">#0f172a</p>
+            <p class="swatch-usage">Header, logo, major headings, navigation</p>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#1d4ed8"></div>
+          <div class="swatch-meta">
+            <p class="swatch-name">Primary Blue</p>
+            <p class="swatch-hex">#1d4ed8</p>
+            <p class="swatch-usage">CTA buttons, active nav, links, focus</p>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#eff6ff"></div>
+          <div class="swatch-meta">
+            <p class="swatch-name">Primary Blue Subtle</p>
+            <p class="swatch-hex">#eff6ff</p>
+            <p class="swatch-usage">Selected tabs, hover backgrounds</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Background / Surface</h2>
+      <p class="section-sub">Page and container backgrounds.</p>
+      <div class="grid">
+        <div class="swatch">
+          <div class="swatch-color" style="background:#f8fafc"></div>
+          <div class="swatch-meta">
+            <p class="swatch-name">Background App</p>
+            <p class="swatch-hex">#f8fafc</p>
+            <p class="swatch-usage">Overall page background</p>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#ffffff; border-bottom:1px solid var(--border-light)"></div>
+          <div class="swatch-meta">
+            <p class="swatch-name">Background Surface</p>
+            <p class="swatch-hex">#ffffff</p>
+            <p class="swatch-usage">Cards, tables, forms, modals</p>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--welcome-hero-gradient)"></div>
+          <div class="swatch-meta">
+            <p class="swatch-name">Welcome Hero Gradient</p>
+            <p class="swatch-hex">135deg, navy → blue</p>
+            <p class="swatch-usage">Hero / welcome sections</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Typography Colors</h2>
+      <div class="grid">
+        <div class="swatch">
+          <div class="swatch-color" style="background:#0f172a"></div>
+          <div class="swatch-meta">
+            <p class="swatch-name">Text Dark</p>
+            <p class="swatch-hex">#0f172a</p>
+            <p class="swatch-usage">Main headings</p>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#334155"></div>
+          <div class="swatch-meta">
+            <p class="swatch-name">Text Body</p>
+            <p class="swatch-hex">#334155</p>
+            <p class="swatch-usage">Normal content</p>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#64748b"></div>
+          <div class="swatch-meta">
+            <p class="swatch-name">Text Muted</p>
+            <p class="swatch-hex">#64748b</p>
+            <p class="swatch-usage">Supporting information</p>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:20px; background:var(--bg-surface); border:1px solid var(--border-light); border-radius:var(--radius-md); padding:4px 20px;">
+        <div class="type-row">
+          <span class="type-label">Dark</span>
+          <span class="type-dark" style="font-size:20px;">Quarterly compliance summary</span>
+        </div>
+        <div class="type-row">
+          <span class="type-label">Body</span>
+          <span class="type-body" style="font-size:15px;">All submitted filings have been reviewed by the department.</span>
+        </div>
+        <div class="type-row">
+          <span class="type-label">Muted</span>
+          <span class="type-muted" style="font-size:13px;">Last updated 2 hours ago</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Borders</h2>
+      <div class="grid">
+        <div class="swatch">
+          <div class="swatch-color" style="background:#e2e8f0"></div>
+          <div class="swatch-meta">
+            <p class="swatch-name">Border Light</p>
+            <p class="swatch-hex">#e2e8f0</p>
+            <p class="swatch-usage">Card / input / table borders</p>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#f1f5f9"></div>
+          <div class="swatch-meta">
+            <p class="swatch-name">Border Subtle</p>
+            <p class="swatch-hex">#f1f5f9</p>
+            <p class="swatch-usage">Internal dividers</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Status Colors</h2>
+      <p class="section-sub">Approved, pending, active, rejected states.</p>
+      <div class="status-row" style="margin-bottom:20px;">
+        <span class="status-badge status-approved">● Approved</span>
+        <span class="status-badge status-pending">● Pending</span>
+        <span class="status-badge status-active">● Active</span>
+        <span class="status-badge status-rejected">● Rejected</span>
+      </div>
+      <table>
+        <thead>
+          <tr><th>State</th><th>Background</th><th>Text</th><th>Use for</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Success</td><td>#dcfce7</td><td>#15803d</td><td>Approved / verified</td></tr>
+          <tr><td>Warning</td><td>#fef3c7</td><td>#b45309</td><td>Pending / review</td></tr>
+          <tr><td>Info</td><td>#dbeafe</td><td>#1e40af</td><td>Active / informational</td></tr>
+          <tr><td>Danger</td><td>#ffe4e6</td><td>#be123c</td><td>Rejected / urgent</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Border Radius</h2>
+      <div class="radius-row">
+        <div class="radius-box r-sm">radius-sm · 6px</div>
+        <div class="radius-box r-md">radius-md · 8px</div>
+        <div class="radius-box r-lg">radius-lg · 12px</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Elevation / Shadows</h2>
+      <div class="shadow-row">
+        <div class="shadow-box s-sm">shadow-sm</div>
+        <div class="shadow-box s-md">shadow-md</div>
+        <div class="shadow-box s-lg">shadow-lg</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Buttons</h2>
+      <div class="status-row">
+        <button class="btn btn-primary">Save changes</button>
+        <button class="btn btn-subtle">View details</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Card Example</h2>
+      <div class="card-demo">
+        <h3>Permit Application #4471</h3>
+        <p>Submitted by J. Alvarez on Sept 3, 2026. Awaiting department review.</p>
+        <span class="status-badge status-pending">● Pending</span>
+      </div>
+    </section>
+
+  </div>
+
+</body>
+</html>
