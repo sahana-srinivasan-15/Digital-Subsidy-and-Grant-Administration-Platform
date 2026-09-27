@@ -18,7 +18,7 @@ export const initialGrievances = [
     status: 'IN_PROGRESS', // OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED
     createdAt: '2026-09-10T14:20:00Z',
     updatedAt: '2026-09-11T09:30:00Z',
-    assignedOfficer: 'Anil Sharma (Field Inspector)',
+    assignedOfficer: 'Sahana (Field Inspector)',
     officerRemarks: 'Verification scheduled for field site inspection on 13th Sept 2026. Land records verified on online revenue portal.'
   },
   {
@@ -157,7 +157,7 @@ export const initialAuditLogs = [
   {
     id: 'LOG-99119',
     timestamp: '2026-09-12T11:20:45Z',
-    actorName: 'Anil Sharma',
+    actorName: 'Sahana',
     actorRole: 'VERIFIER',
     eventCategory: 'DOCS_VERIFIED',
     action: 'Physical & OCR Document Verification Completed',
@@ -179,7 +179,7 @@ export const initialAuditLogs = [
   {
     id: 'LOG-99117',
     timestamp: '2026-09-11T09:30:00Z',
-    actorName: 'Anil Sharma',
+    actorName: 'Sahana',
     actorRole: 'VERIFIER',
     eventCategory: 'GRIEVANCE_UPDATED',
     action: 'Grievance Resolution Updated (GRV-2026-1842)',

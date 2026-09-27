@@ -87,8 +87,12 @@ export const ApplicantDashboard = ({ activeTab: _activeTab, setActiveTab }) => {
     setIsApplying(true);
   };
 
-  const filteredSchemes = schemes.filter(s => {
-    const matchesSearch = s.title.toLowerCase().includes(searchTerm.toLowerCase()) || s.description.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredSchemes = (schemes || []).filter(s => {
+    if (!s) return false;
+    const sTitle = (s.title || '').toLowerCase();
+    const sDesc = (s.description || s.shortDesc || '').toLowerCase();
+    const term = (searchTerm || '').toLowerCase().trim();
+    const matchesSearch = !term || sTitle.includes(term) || sDesc.includes(term);
     const matchesCat = categoryFilter === 'ALL' || s.category === categoryFilter;
     return matchesSearch && matchesCat;
   });
@@ -174,7 +178,7 @@ export const ApplicantDashboard = ({ activeTab: _activeTab, setActiveTab }) => {
                     <h3 className="text-base font-bold text-[#17324D] font-heading">{activeApp.schemeTitle}</h3>
                   </div>
                   <p className="text-xs text-[#526270] mt-1">
-                    Submitted on {new Date(activeApp.submittedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} • Requested: <span className="text-[#287C5A] font-extrabold">₹{activeApp.requestedAmount.toLocaleString('en-IN')}</span>
+                    Submitted on {activeApp.submittedDate ? new Date(activeApp.submittedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently'} • Requested: <span className="text-[#287C5A] font-extrabold">₹{Number(activeApp.requestedAmount || 0).toLocaleString('en-IN')}</span>
                   </p>
                 </div>
 
@@ -218,7 +222,7 @@ export const ApplicantDashboard = ({ activeTab: _activeTab, setActiveTab }) => {
                       <span className="text-xs font-mono font-bold text-[#17324D]">{activeApp.id}</span>
                     </div>
                     <h4 className="text-base font-extrabold text-[#17324D] font-heading">
-                      Grant of ₹{(activeApp.approvedAmount || activeApp.requestedAmount)?.toLocaleString('en-IN')} Authorized by Sanction Authority
+                      Grant of ₹{Number(activeApp.approvedAmount || activeApp.requestedAmount || 0).toLocaleString('en-IN')} Authorized by Sanction Authority
                     </h4>
                     <p className="text-xs text-[#526270]">
                       The Sanction Officer has approved this grant. Click the button below to execute Direct Bank Transfer (DBT) to your registered bank account (<strong className="text-[#17324D]">{activeApp.bankDetails?.bankName || 'Aadhaar Seeded Account'}</strong>) and advance to 100% Disbursed.
@@ -246,7 +250,7 @@ export const ApplicantDashboard = ({ activeTab: _activeTab, setActiveTab }) => {
                       <span className="text-xs font-mono font-bold text-[#287C5A]">PFMS Ref: {activeApp.transactionId || 'TXN-DBT-2026-91823901'}</span>
                     </div>
                     <p className="text-xs text-[#17324D] font-medium mt-1">
-                      Direct Benefit Transfer of <strong className="text-[#287C5A] font-extrabold">₹{(activeApp.approvedAmount || activeApp.requestedAmount)?.toLocaleString('en-IN')}</strong> was successfully credited to your {activeApp.bankDetails?.bankName || 'Bank Account'} (••••{activeApp.bankDetails?.accountNumber?.slice(-4) || '1024'}).
+                      Direct Benefit Transfer of <strong className="text-[#287C5A] font-extrabold">₹{Number(activeApp.approvedAmount || activeApp.requestedAmount || 0).toLocaleString('en-IN')}</strong> was successfully credited to your {activeApp.bankDetails?.bankName || 'Bank Account'} (••••{activeApp.bankDetails?.accountNumber?.slice(-4) || '1024'}).
                     </p>
                   </div>
                   <button
@@ -262,7 +266,11 @@ export const ApplicantDashboard = ({ activeTab: _activeTab, setActiveTab }) => {
               )}
 
               {/* 5-Stage Stepper */}
-              <JourneyStepper status={activeApp.status} timeline={activeApp.timeline} />
+              <JourneyStepper 
+                status={activeApp.status} 
+                timeline={activeApp.timeline} 
+                districtEndorsed={Boolean(activeApp.districtEndorsed)}
+              />
             </div>
           ) : (
             <div className="gov-card p-6 rounded-xl bg-gradient-to-r from-[#17324D]/5 to-[#D97706]/5 border border-[#DDE3E7] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -297,14 +305,14 @@ export const ApplicantDashboard = ({ activeTab: _activeTab, setActiveTab }) => {
 
             <div className="stat-box">
               <div className="text-[#526270] text-xs font-semibold uppercase tracking-wider mb-1">Under Verification</div>
-              <div className="text-2xl font-extrabold text-[#B7791F] font-heading">{myApps.filter(a => a.status === 'UNDER_VERIFICATION' || a.status === 'VERIFIED').length}</div>
-              <div className="text-[11px] text-[#B7791F] font-bold mt-1">In inspector queue</div>
+              <div className="text-2xl font-extrabold text-[#B7791F] font-heading">{myApps.filter(a => a.status === 'UNDER_VERIFICATION' || a.status === 'DISTRICT_VERIFICATION' || a.status === 'VERIFIED').length}</div>
+              <div className="text-[11px] text-[#B7791F] font-bold mt-1">Field & District queue</div>
             </div>
 
             <div className="stat-box">
               <div className="text-[#526270] text-xs font-semibold uppercase tracking-wider mb-1">Disbursed Grant</div>
               <div className="text-2xl font-extrabold text-[#287C5A] font-heading">
-                ₹{myApps.filter(a => a.status === 'PAID' || a.status === 'DISBURSED').reduce((sum, a) => sum + (a.approvedAmount || 0), 0).toLocaleString('en-IN')}
+                ₹{myApps.filter(a => a.status === 'PAID' || a.status === 'DISBURSED').reduce((sum, a) => sum + (Number(a.approvedAmount) || Number(a.requestedAmount) || 0), 0).toLocaleString('en-IN')}
               </div>
               <div className="text-[11px] text-[#287C5A] font-bold mt-1">Direct Bank Transfer</div>
             </div>

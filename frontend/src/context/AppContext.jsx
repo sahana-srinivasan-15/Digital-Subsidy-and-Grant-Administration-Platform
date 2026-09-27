@@ -161,13 +161,10 @@ export const AppProvider = ({ children }) => {
     try {
       localStorage.setItem('gov_users', JSON.stringify(sanitized));
     } catch {}
-    return sanitized.map(u => {
-      const isDistrict = u.role === 'DISTRICT_OFFICER' || u.email === 'kavitha@gmail.com';
-      return {
-        ...u,
-        avatar: isDistrict ? null : (u.avatar && !u.avatar.includes('undefined') ? u.avatar : getSafeAvatar(u.name, u.role))
-      };
-    });
+    return sanitized.map(u => ({
+      ...u,
+      avatar: getSafeAvatar(u.name, u.role)
+    }));
   });
 
   const [currentRole, setCurrentRole] = useState(() => {
@@ -191,12 +188,11 @@ export const AppProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(savedAuthUser);
         if (parsed && (parsed.email || parsed.name)) {
-          const isDistrict = parsed.role === 'DISTRICT_OFFICER' || parsed.email === 'kavitha@gmail.com';
+          const derivedRole = parsed.role || localStorage.getItem('gov_role') || 'APPLICANT';
           return {
             ...parsed,
-            avatar: isDistrict ? null : (parsed.avatar && !parsed.avatar.includes('undefined')
-              ? parsed.avatar
-              : getSafeAvatar(parsed.name, parsed.role || 'APPLICANT'))
+            role: derivedRole,
+            avatar: getSafeAvatar(parsed.name, derivedRole)
           };
         }
       } catch (e) {
@@ -207,10 +203,9 @@ export const AppProvider = ({ children }) => {
     const savedUsers = localStorage.getItem('gov_users');
     const pool = savedUsers ? JSON.parse(savedUsers) : initialUsers;
     const user = pool.find(u => u.role === role) || pool[0];
-    const isDistrictUser = user?.role === 'DISTRICT_OFFICER' || user?.email === 'kavitha@gmail.com';
     return {
       ...user,
-      avatar: isDistrictUser ? null : (user?.avatar && !user.avatar.includes('undefined') ? user.avatar : getSafeAvatar(user?.name, user?.role || role))
+      avatar: getSafeAvatar(user?.name, user?.role || role)
     };
   });
 
@@ -230,7 +225,23 @@ export const AppProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length >= initialApplications.length) {
-          return parsed;
+          return parsed.map(app => {
+            const verifierName = (!app.verifierName || app.verifierName === 'Anil Sharma') ? 'Sahana' : app.verifierName;
+            const timeline = Array.isArray(app.timeline) ? app.timeline.map(t => ({
+              ...t,
+              by: t.by ? t.by.replace(/Anil Sharma/g, 'Sahana') : t.by,
+              title: t.title ? t.title.replace(/Anil Sharma/g, 'Sahana') : t.title
+            })) : app.timeline;
+
+            return {
+              ...app,
+              verifierName,
+              timeline,
+              districtEndorsed: app.districtEndorsed !== undefined 
+                ? app.districtEndorsed 
+                : (app.status === 'APPROVED' || app.status === 'PAID')
+            };
+          });
         }
       } catch (e) {
         console.warn("Failed to parse saved applications, using seed data", e);
@@ -245,7 +256,10 @@ export const AppProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.some(n => n.userId || n.userEmail || n.isGlobal)) {
-          return parsed;
+          return parsed.map(n => ({
+            ...n,
+            message: n.message ? n.message.replace(/Inspector Anil Sharma/g, 'Inspector Sahana').replace(/Anil Sharma/g, 'Sahana') : n.message
+          }));
         }
       } catch (e) {
         console.warn('Failed to parse saved notifications:', e);
@@ -263,7 +277,11 @@ export const AppProvider = ({ children }) => {
         if (Array.isArray(parsed) && parsed.length > 0) {
           const existingIds = new Set(parsed.map(l => l.id));
           const missingDefaults = defaults.filter(d => !existingIds.has(d.id));
-          return [...parsed, ...missingDefaults];
+          return [...parsed, ...missingDefaults].map(log => ({
+            ...log,
+            actor: log.actor ? log.actor.replace(/Anil Sharma/g, 'Sahana') : log.actor,
+            actorName: log.actorName ? log.actorName.replace(/Anil Sharma/g, 'Sahana') : log.actorName
+          }));
         }
       } catch (e) {
         console.warn('Failed to parse saved audit logs:', e);
@@ -274,7 +292,18 @@ export const AppProvider = ({ children }) => {
 
   const [grievances, setGrievances] = useState(() => {
     const saved = localStorage.getItem('gov_grievances');
-    return saved ? JSON.parse(saved) : initialGrievances;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.map(g => ({
+          ...g,
+          assignedOfficer: g.assignedOfficer ? g.assignedOfficer.replace(/Anil Sharma/g, 'Sahana') : g.assignedOfficer
+        }));
+      } catch (e) {
+        console.warn('Failed to parse saved grievances:', e);
+      }
+    }
+    return initialGrievances;
   });
 
   const [schemeBudgets, setSchemeBudgets] = useState(() => {
@@ -383,8 +412,7 @@ export const AppProvider = ({ children }) => {
                 email: profile.email,
                 role: liveRole,
                 phone: profile.phone || '',
-                district: profile.address || '',
-                avatar: (liveRole === 'DISTRICT_OFFICER' || profile.email === 'kavitha@gmail.com') ? null : getSafeAvatar(profile.name, liveRole),
+                avatar: getSafeAvatar(profile.name, liveRole),
                 token: ApiService.getToken()
               };
               setCurrentUser(liveUser);
@@ -726,11 +754,12 @@ export const AppProvider = ({ children }) => {
           name: userName,
           email: res.email || cleanEmail,
           role: targetRole,
-          avatar: isDistrictOfficer ? null : (res.avatar || existingUser?.avatar || getSafeAvatar(userName, targetRole)),
+          avatar: getSafeAvatar(userName, targetRole),
           token: res.accessToken
         };
 
         setCurrentUser(loggedInUser);
+        localStorage.setItem('gov_role', targetRole);
         localStorage.setItem('dsga_auth_user', JSON.stringify(loggedInUser));
         setUsers(prev => {
           const exists = prev.find(u => u.email?.toLowerCase() === cleanEmail);
@@ -831,10 +860,12 @@ export const AppProvider = ({ children }) => {
         name: userName,
         email: cleanEmail,
         role: targetRole,
-        avatar: isDistrict ? null : (existingUser?.avatar || getSafeAvatar(userName, targetRole)),
+        avatar: getSafeAvatar(userName, targetRole),
         token: `local-jwt-${Date.now()}`
       };
+      setCurrentRole(targetRole);
       setCurrentUser(loggedInUser);
+      localStorage.setItem('gov_role', targetRole);
       localStorage.setItem('dsga_auth_user', JSON.stringify(loggedInUser));
       showToast(`Welcome back, ${userName}!`, 'success');
       addAuditLog('USER_LOGIN', `Authenticated via reset credentials as ${targetRole} (${cleanEmail})`);
@@ -853,11 +884,12 @@ export const AppProvider = ({ children }) => {
       const loggedInUser = {
         ...existingUser,
         role: targetRole,
-        avatar: isDistrict ? null : existingUser.avatar,
+        avatar: getSafeAvatar(existingUser.name, targetRole),
         token: `local-jwt-${Date.now()}`
       };
       setCurrentUser(loggedInUser);
       localStorage.setItem('dsga_auth_user', JSON.stringify(loggedInUser));
+      localStorage.setItem('gov_role', targetRole);
       showToast(`Welcome back, ${loggedInUser.name}!`, 'success');
       addAuditLog('USER_LOGIN', `Authenticated locally as ${targetRole} (${cleanEmail})`);
       return true;
@@ -890,11 +922,12 @@ export const AppProvider = ({ children }) => {
         name: preset.name,
         email: cleanEmail,
         role: targetRole,
-        avatar: isDistrict ? null : getSafeAvatar(preset.name, targetRole),
+        avatar: getSafeAvatar(preset.name, targetRole),
         token: `local-jwt-${Date.now()}`
       };
       setCurrentUser(loggedInUser);
       localStorage.setItem('dsga_auth_user', JSON.stringify(loggedInUser));
+      localStorage.setItem('gov_role', targetRole);
       showToast(`Welcome back, ${loggedInUser.name}!`, 'success');
       addAuditLog('USER_LOGIN', `Authenticated as ${targetRole} (${cleanEmail})`);
       return true;
@@ -909,9 +942,15 @@ export const AppProvider = ({ children }) => {
           if (saved.password && saved.password !== password) {
             throw new Error('Invalid email address or password');
           }
+          const loggedInUser = {
+            ...saved,
+            role: 'APPLICANT',
+            avatar: getSafeAvatar(saved.name, 'APPLICANT')
+          };
           setCurrentRole('APPLICANT');
-          setCurrentUser(saved);
-          localStorage.setItem('dsga_auth_user', JSON.stringify(saved));
+          setCurrentUser(loggedInUser);
+          localStorage.setItem('gov_role', 'APPLICANT');
+          localStorage.setItem('dsga_auth_user', JSON.stringify(loggedInUser));
           showToast(`Welcome back, ${saved.name}!`, 'success');
           return true;
         }
@@ -946,6 +985,7 @@ export const AppProvider = ({ children }) => {
         };
         setCurrentRole('APPLICANT');
         setCurrentUser(newUser);
+        localStorage.setItem('gov_role', 'APPLICANT');
         localStorage.setItem('dsga_auth_user', JSON.stringify(newUser));
         setUsers(prev => {
           const exists = prev.find(u => u.email?.toLowerCase() === cleanEmail);
@@ -977,6 +1017,7 @@ export const AppProvider = ({ children }) => {
 
     setCurrentRole('APPLICANT');
     setCurrentUser(newUser);
+    localStorage.setItem('gov_role', 'APPLICANT');
     localStorage.setItem('dsga_auth_user', JSON.stringify(newUser));
     localStorage.setItem('dsga_registered_citizen', JSON.stringify(newUser));
     setUsers(prev => {
@@ -1096,15 +1137,17 @@ export const AppProvider = ({ children }) => {
       applicantAge: currentUser?.age || 30,
       applicantIncome: currentUser?.income || 300000,
       applicantState: currentUser?.state || 'Telangana',
-      applicantDistrict: currentUser?.district || 'Medak',
+      applicantDistrict: formData.district || currentUser?.district || 'Medak',
+      applicantTaluk: formData.taluk || currentUser?.taluk || 'Medak North',
       schemeId: formData.schemeId,
       schemeTitle: scheme ? scheme.title : 'Government Assistance Scheme',
       requestedAmount: Number(formData.requestedAmount) || (scheme ? scheme.maxAmount : 100000),
       approvedAmount: null,
       submittedDate: new Date().toISOString(),
       status: 'UNDER_VERIFICATION',
+      districtEndorsed: false,
       verifierId: 'usr-2',
-      verifierName: 'Anil Sharma',
+      verifierName: 'Sahana',
       verifierRemarks: isRenewal
         ? `Renewal submission (Ref: ${prevAppId}). Prior records available for accelerated verification.`
         : 'Pending initial field document scrutiny.',
@@ -1169,14 +1212,21 @@ export const AppProvider = ({ children }) => {
       message: `Application ${newAppId} ${isRenewal ? `(Renewal of ${prevAppId})` : ''} assigned for document scrutiny.`,
       type: 'WARNING'
     });
+    notify({
+      userId: 'usr-5',
+      userEmail: 'kavitha@gmail.com',
+      title: isRenewal ? 'Renewal Application in District Queue' : 'New Application in District Queue',
+      message: `Application ${newAppId} (${newApp.schemeTitle}) submitted from ${newApp.applicantDistrict} entered district review pipeline.`,
+      type: 'INFO'
+    });
 
     showToast(isRenewal ? `Renewal application ${newAppId} submitted successfully!` : `Application ${newAppId} submitted successfully!`, 'success');
     return newAppId;
   };
 
-  // 2. Verifier Action: Verify / Reject Application
+  // 2. Verifier Action: Verify / Reject Application -> Advances to District Officer Verification
   const verifyApplication = async (appId, isApproved, remarks, updatedDocs) => {
-    const nextStatus = isApproved ? 'VERIFIED' : 'REJECTED';
+    const nextStatus = isApproved ? 'DISTRICT_VERIFICATION' : 'REJECTED';
     const app = (applications || []).find(a => a.id === appId);
 
     if (backendConnected && app) {
@@ -1186,7 +1236,7 @@ export const AppProvider = ({ children }) => {
           applicationId: numId,
           verifierId: currentUser.backendId || 2,
           remarks: remarks || 'Field verification completed',
-          verificationStatus: nextStatus,
+          verificationStatus: isApproved ? 'VERIFIED' : 'REJECTED',
           verificationScore: isApproved ? 95.0 : 35.0
         });
       } catch (err) {
@@ -1199,41 +1249,50 @@ export const AppProvider = ({ children }) => {
         return {
           ...a,
           status: nextStatus,
+          districtEndorsed: false,
+          verifierId: currentUser?.id || a.verifierId || 'usr-2',
+          verifierName: currentUser?.name || 'Sahana',
           verifierRemarks: remarks,
           verificationDate: new Date().toISOString(),
           documents: updatedDocs || a.documents,
           timeline: [
             ...(a.timeline || []),
             {
-              status: nextStatus,
-              title: isApproved ? 'Documents & Eligibility Verified' : 'Application Flagged / Ineligible',
+              status: isApproved ? 'FIELD_VERIFIED' : 'REJECTED',
+              title: isApproved ? 'Field Document Scrutiny Passed' : 'Application Flagged / Ineligible',
               date: new Date().toLocaleString(),
-              by: `${currentUser?.name || 'Field Verifier'} (Verifier)`
-            }
+              by: `${currentUser?.name || 'Sahana'} (Verifier)`
+            },
+            ...(isApproved ? [{
+              status: 'DISTRICT_VERIFICATION',
+              title: 'Forwarded for District Officer Verification & Quota Endorsement',
+              date: new Date().toLocaleString(),
+              by: 'Workflow Engine'
+            }] : [])
           ]
         };
       }
       return a;
     }));
 
-    addAuditLog(isApproved ? 'VERIFICATION_APPROVED' : 'VERIFICATION_REJECTED', `Application ${appId} marked as ${nextStatus}`);
+    addAuditLog(isApproved ? 'FIELD_VERIFICATION_PASSED' : 'VERIFICATION_REJECTED', `Application ${appId} marked as ${nextStatus}`);
 
     if (isApproved) {
       notify({
         userId: app?.applicantId,
         userEmail: app?.applicantEmail,
-        title: 'Documents Verified',
-        message: `Your application ${appId} passed field verification and is sent to Authority for sanction.`,
+        title: 'District Officer Verification in Progress',
+        message: `Your application ${appId} passed field inspection and is now under District Officer Verification for quota endorsement.`,
         type: 'SUCCESS'
       });
       notify({
-        userId: 'usr-3',
-        userEmail: 'authority@gov.in',
-        title: 'Sanction Review Required',
-        message: `Application ${appId} is verified and ready for funding decision.`,
+        userId: 'usr-5',
+        userEmail: 'kavitha@gmail.com',
+        title: 'District Officer Verification Required',
+        message: `Application ${appId} passed field inspection and is queued for District Officer Verification & quota endorsement.`,
         type: 'WARNING'
       });
-      showToast(`Application ${appId} verified and forwarded to Authority!`, 'success');
+      showToast(`Application ${appId} verified and forwarded for District Officer Verification!`, 'success');
     } else {
       notify({
         userId: app?.applicantId,
@@ -1248,9 +1307,15 @@ export const AppProvider = ({ children }) => {
 
   // 3. Authority Action: Approve / Reject Sanction & Set Amount
   const approveSanction = async (appId, isApproved, sanctionedAmount, remarks) => {
+    const app = applications.find(a => a.id === appId);
+
+    if (isApproved && app && !app.districtEndorsed) {
+      showToast('Cannot sanction: Application must first be reviewed and endorsed by District Nodal Officer.', 'error');
+      return false;
+    }
+
     const nextStatus = isApproved ? 'PAID' : 'REJECTED';
     const txnId = isApproved ? `TXN-DBT-2026-${Math.floor(10000000 + Math.random() * 90000000)}` : null;
-    const app = applications.find(a => a.id === appId);
 
     if (backendConnected && app) {
       try {
@@ -1382,7 +1447,16 @@ export const AppProvider = ({ children }) => {
       `Application ${appId} ${isEndorsed ? 'endorsed to State Sanctioning Authority' : 'returned for re-inspection'}. Remarks: ${remarks || 'None'}`
     );
 
+    const targetApp = (applications || []).find(a => a.id === appId);
+
     if (isEndorsed) {
+      notify({
+        userId: targetApp?.applicantId,
+        userEmail: targetApp?.applicantEmail,
+        title: 'District Verification Completed',
+        message: `Your application ${appId} was approved and endorsed by District Nodal Officer. It is now awaiting final Sanction Directorate sign-off.`,
+        type: 'SUCCESS'
+      });
       notify({
         userId: 'usr-3',
         userEmail: 'authority@gov.in',
@@ -1390,7 +1464,7 @@ export const AppProvider = ({ children }) => {
         message: `Application ${appId} has been endorsed by District Collectorate and is pending sanction decision.`,
         type: 'INFO'
       });
-      showToast(`Application ${appId} successfully endorsed to State Directorate!`, 'success');
+      showToast(`Application ${appId} successfully verified & endorsed to State Directorate!`, 'success');
     } else {
       notify({
         userId: 'usr-2',
@@ -1623,8 +1697,7 @@ export const AppProvider = ({ children }) => {
       department: userData.department || userData.district || 'National Platform',
       district: userData.district || userData.department || 'National Platform',
       address: userData.address || userData.department || 'National Platform',
-      status: 'ACTIVE',
-      avatar: (userData.role === 'DISTRICT_OFFICER' || userData.role === 'DISTRICT' || cleanEmail === 'kavitha@gmail.com') ? null : getSafeAvatar(userData.name, userData.role),
+      avatar: getSafeAvatar(userData.name, userData.role),
       createdAt: new Date().toISOString()
     };
 

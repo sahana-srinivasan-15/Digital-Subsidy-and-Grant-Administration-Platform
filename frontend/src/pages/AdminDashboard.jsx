@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp, deduplicateUsers } from '../context/AppContext';
-import { getSafeAvatar } from '../utils/avatar';
+import { getInitial } from '../utils/avatar';
 import { SchemeFormModal } from '../components/admin/SchemeFormModal';
 import { UserFormModal } from '../components/admin/UserFormModal';
 import { StatusBadge } from '../components/common/Badge';
@@ -812,18 +812,19 @@ export const AdminDashboard = ({ activeTab = 'dashboard', setActiveTab: setParen
                           return (
                             <tr key={u.id} className={`transition ${isDistrictOfficer ? 'bg-[#F0F7FF]/30 hover:bg-[#F0F7FF]/60' : 'hover:bg-[#F8FAFC]'}`}>
                               <td className="px-6 py-4 font-bold text-[#17324D] flex items-center gap-3">
-                                {isDistrictOfficer ? (
-                                  <div className="w-9 h-9 rounded-xl bg-[#EFF6FF] border border-[#1D4ED8]/30 text-[#1D4ED8] flex items-center justify-center font-bold text-xs shadow-2xs flex-shrink-0" title="District Nodal Officer">
-                                    <Building2 className="w-5 h-5 text-[#1D4ED8]" />
-                                  </div>
-                                ) : (
-                                  <img
-                                    src={getSafeAvatar(u)}
-                                    alt={u.name}
-                                    onError={(e) => { e.currentTarget.src = getSafeAvatar(u.name, u.role); }}
-                                    className="w-9 h-9 rounded-xl object-cover border border-[#DDE3E7]"
-                                  />
-                                )}
+                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm shadow-2xs flex-shrink-0 select-none ${
+                                  u.role === 'ADMINISTRATOR' || u.role === 'ADMIN'
+                                    ? 'bg-[#F3E8FF] text-[#7C3AED] border border-[#7C3AED]/30'
+                                    : u.role === 'AUTHORITY'
+                                    ? 'bg-[#FFF8E6] text-[#D97706] border border-[#D97706]/30'
+                                    : isDistrictOfficer
+                                    ? 'bg-[#EFF6FF] text-[#1D4ED8] border border-[#1D4ED8]/40 shadow-2xs'
+                                    : u.role === 'VERIFIER'
+                                    ? 'bg-[#EBF2F7] text-[#17324D] border border-[#17324D]/30'
+                                    : 'bg-[#EAF5EF] text-[#287C5A] border border-[#287C5A]/30'
+                                }`}>
+                                  {getInitial(u.name)}
+                                </div>
                                 <div>
                                   <div className="flex items-center gap-1.5">
                                     <span className="text-[#17324D] font-bold text-xs">{u.name}</span>

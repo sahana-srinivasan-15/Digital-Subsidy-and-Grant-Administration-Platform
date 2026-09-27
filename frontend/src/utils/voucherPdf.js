@@ -204,7 +204,7 @@ export const downloadVoucherPdf = (app, currentUser = null) => {
   doc.setTextColor(23, 50, 77);
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
-  doc.text(app.verifierName || 'Anil Sharma (Field Inspector)', margin + 4, curY + 4.5);
+  doc.text((app.verifierName && app.verifierName !== 'Anil Sharma') ? app.verifierName : 'Sahana (Field Inspector)', margin + 4, curY + 4.5);
   doc.text('Joint Director, Grant Sanction Directorate', margin + 105, curY + 4.5);
 
   doc.setFont('helvetica', 'normal');

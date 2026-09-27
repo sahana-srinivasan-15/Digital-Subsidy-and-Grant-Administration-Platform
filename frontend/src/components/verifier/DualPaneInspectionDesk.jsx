@@ -247,7 +247,7 @@ export const DualPaneInspectionDesk = ({ application, onVerify, onClose }) => {
                 className="px-8 py-3 rounded-full bg-[#D97706] hover:bg-[#B45309] text-white font-extrabold text-xs flex items-center gap-2 shadow-md hover:shadow-lg transition tracking-wide"
               >
                 <ShieldCheck className="w-4 h-4" />
-                <span>Verify & Forward to Sanction Officer</span>
+                <span>Verify & Forward to District Officer</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

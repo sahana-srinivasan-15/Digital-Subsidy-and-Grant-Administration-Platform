@@ -100,7 +100,7 @@ export const VerifierDashboard = ({ activeTab = 'dashboard', setActiveTab }) => 
         <div className="stat-box">
           <div className="text-[#526270] text-xs font-semibold uppercase tracking-wider mb-1">Verified & Forwarded</div>
           <div className="text-2xl font-extrabold text-[#287C5A] font-heading">{verifiedCount}</div>
-          <div className="text-[11px] text-[#287C5A] font-bold mt-1">Passed to Sanction Officer</div>
+          <div className="text-[11px] text-[#287C5A] font-bold mt-1">Forwarded to District Officer</div>
         </div>
 
         <div className="stat-box">
@@ -395,7 +395,7 @@ export const VerifierDashboard = ({ activeTab = 'dashboard', setActiveTab }) => 
                     verifierLogs.map(log => (
                       <tr key={log.id} className="hover:bg-[#F8FAFC]">
                         <td className="px-6 py-4 text-[#7C8992] font-mono text-[10px]">{log.timestamp}</td>
-                        <td className="px-6 py-4 font-bold text-[#17324D]">{log.actor || log.actorName || 'Field Inspector (Anil Sharma)'}</td>
+                        <td className="px-6 py-4 font-bold text-[#17324D]">{((log.actor && !log.actor.includes('Anil Sharma')) ? log.actor : null) || ((log.actorName && log.actorName !== 'Anil Sharma') ? log.actorName : null) || 'Field Inspector (Sahana)'}</td>
                         <td className="px-6 py-4 font-mono font-extrabold text-[#287C5A]">{log.action}</td>
                         <td className="px-6 py-4 font-mono text-[10px] text-[#526270]">
                           <span className="px-2 py-0.5 rounded bg-[#F8FAFC] border border-[#DDE3E7]">

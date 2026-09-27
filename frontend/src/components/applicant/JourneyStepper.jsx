@@ -1,19 +1,26 @@
 import React from 'react';
-import { CheckCircle2, Clock, Award, IndianRupee, FileCheck } from 'lucide-react';
+import { CheckCircle2, Clock, Award, IndianRupee, FileCheck, Building2 } from 'lucide-react';
 
-export const JourneyStepper = ({ status, _timeline = [] }) => {
+export const JourneyStepper = ({ status, timeline = [], districtEndorsed = false }) => {
   const steps = [
     { key: 'SUBMITTED', label: '1. SUBMITTED', icon: Clock, desc: 'Application received' },
-    { key: 'UNDER_VERIFICATION', label: '2. DOCUMENTS', icon: FileCheck, desc: 'Verification in progress' },
-    { key: 'VERIFIED', label: '3. VERIFICATION', icon: CheckCircle2, desc: 'Field inspection passed' },
-    { key: 'APPROVED', label: '4. APPROVAL', icon: Award, desc: 'Sanction officer sign-off' },
+    { key: 'UNDER_VERIFICATION', label: '2. FIELD SCRUTINY', icon: FileCheck, desc: 'Field inspector scrutiny' },
+    { key: 'DISTRICT_VERIFICATION', label: '3. DISTRICT VERIFICATION', icon: Building2, desc: 'District Officer verification & quota' },
+    { key: 'APPROVED', label: '4. SANCTION', icon: Award, desc: 'Sanction officer sign-off' },
     { key: 'PAID', label: '5. DISBURSED', icon: IndianRupee, desc: 'Direct Bank Transfer' }
   ];
 
   const normStatus = (status === 'DISBURSED' ? 'PAID' : status) || 'SUBMITTED';
 
+  const isEndorsed = Boolean(
+    districtEndorsed || 
+    (timeline && timeline.some(t => t.status === 'DISTRICT_ENDORSED')) ||
+    normStatus === 'APPROVED' || 
+    normStatus === 'PAID'
+  );
+
   const getStepStatus = (stepKey) => {
-    const order = ['SUBMITTED', 'UNDER_VERIFICATION', 'VERIFIED', 'APPROVED', 'PAID'];
+    const order = ['SUBMITTED', 'UNDER_VERIFICATION', 'DISTRICT_VERIFICATION', 'APPROVED', 'PAID'];
     const stepIndex = order.indexOf(stepKey);
 
     if (normStatus === 'REJECTED') {
@@ -27,10 +34,21 @@ export const JourneyStepper = ({ status, _timeline = [] }) => {
       if (stepIndex === 4) return 'current';
       return 'upcoming';
     }
-    if (normStatus === 'VERIFIED') {
-      if (stepIndex <= 2) return 'completed';
-      if (stepIndex === 3) return 'current';
+    if (normStatus === 'DISTRICT_VERIFICATION' || normStatus === 'DISTRICT_REVIEW') {
+      if (stepIndex <= 1) return 'completed';
+      if (stepIndex === 2) return 'current';
       return 'upcoming';
+    }
+    if (normStatus === 'VERIFIED') {
+      if (isEndorsed) {
+        if (stepIndex <= 2) return 'completed';
+        if (stepIndex === 3) return 'current';
+        return 'upcoming';
+      } else {
+        if (stepIndex <= 1) return 'completed';
+        if (stepIndex === 2) return 'current';
+        return 'upcoming';
+      }
     }
     // SUBMITTED or UNDER_VERIFICATION:
     if (stepIndex === 0) return 'completed';
@@ -42,8 +60,9 @@ export const JourneyStepper = ({ status, _timeline = [] }) => {
     if (normStatus === 'PAID') return 100;
     if (normStatus === 'REJECTED') return 20;
     if (normStatus === 'APPROVED') return 80;
-    if (normStatus === 'VERIFIED') return 60;
-    return 35;
+    if (normStatus === 'VERIFIED') return isEndorsed ? 65 : 45;
+    if (normStatus === 'DISTRICT_VERIFICATION' || normStatus === 'DISTRICT_REVIEW') return 45;
+    return 25;
   };
 
   const progressPct = getProgressPercentage();

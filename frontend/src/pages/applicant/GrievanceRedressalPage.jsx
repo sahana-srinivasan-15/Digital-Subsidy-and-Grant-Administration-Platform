@@ -49,15 +49,24 @@ export const GrievanceRedressalPage = ({ initialScheme, onBackToDashboard: _onBa
 
   // Filter grievances
   const userGrievances = currentRole === 'APPLICANT'
-    ? grievances.filter(g => g.citizenId === currentUser.id || g.citizenEmail === currentUser.email)
-    : grievances;
+    ? (grievances || []).filter(g => {
+        if (!currentUser) return false;
+        const currentId = currentUser.id ? String(currentUser.id) : '';
+        const currentEmail = (currentUser.email || '').toLowerCase().trim();
+        const gCitizenId = g.citizenId ? String(g.citizenId) : '';
+        const gCitizenEmail = (g.citizenEmail || '').toLowerCase().trim();
+        return (currentId && gCitizenId && currentId === gCitizenId) ||
+               (currentEmail && gCitizenEmail && currentEmail === gCitizenEmail);
+      })
+    : (grievances || []);
 
   const filteredGrievances = userGrievances.filter(g => {
-    const matchesSearch = 
-      g.ticketNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      g.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      g.schemeTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      g.citizenName?.toLowerCase().includes(searchTerm.toLowerCase());
+    const term = (searchTerm || '').toLowerCase().trim();
+    const matchesSearch = !term ||
+      (g.ticketNo || '').toLowerCase().includes(term) ||
+      (g.subject || '').toLowerCase().includes(term) ||
+      (g.schemeTitle || '').toLowerCase().includes(term) ||
+      (g.citizenName || '').toLowerCase().includes(term);
     const matchesStatus = statusFilter === 'ALL' || g.status === statusFilter;
     return matchesSearch && matchesStatus;
   });

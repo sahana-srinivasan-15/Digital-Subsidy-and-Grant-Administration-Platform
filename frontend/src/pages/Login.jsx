@@ -22,7 +22,7 @@ const isValidAadhaarFormat = (val) => {
 const presetLogins = [
   { 
     role: 'APPLICANT', 
-    email: '', 
+    email: 'shama@gmail.com', 
     label: 'Citizen', 
     icon: User
   },
@@ -108,16 +108,13 @@ export const Login = ({ onLoginSuccess, onExploreSchemes }) => {
       try {
         const parsed = JSON.parse(saved);
         if (parsed?.role) initialRole = parsed.role;
-        if (initialRole !== 'APPLICANT' && parsed?.email) return parsed.email;
+        if (parsed?.email) return parsed.email;
       } catch (e) {
         console.warn('Saved user parse notice:', e);
       }
     }
-    if (initialRole === 'APPLICANT') {
-      return '';
-    }
     const preset = presetLogins.find(p => p.role === initialRole);
-    return preset?.email || '';
+    return preset?.email || 'shama@gmail.com';
   });
 
   // Password must start empty (Requirements 5 & 11: no exposed or pre-filled passwords)
@@ -420,11 +417,7 @@ export const Login = ({ onLoginSuccess, onExploreSchemes }) => {
                             id={`role-btn-${p.role.toLowerCase()}`}
                             onClick={() => {
                               setSelectedRole(p.role);
-                              if (p.role === 'APPLICANT') {
-                                setEmail('');
-                              } else {
-                                setEmail(p.email);
-                              }
+                              setEmail(p.email || '');
                               // Requirement 11: Do not auto-fill default password; user enters authorized password
                               setPassword('');
                               if (errorMessage) setErrorMessage('');
@@ -755,7 +748,7 @@ export const Login = ({ onLoginSuccess, onExploreSchemes }) => {
                       setErrorMessage('');
                       setRegError('');
                       if (selectedRole === 'APPLICANT') {
-                        setEmail('');
+                        setEmail('shama@gmail.com');
                         setPassword('');
                       }
                     }}

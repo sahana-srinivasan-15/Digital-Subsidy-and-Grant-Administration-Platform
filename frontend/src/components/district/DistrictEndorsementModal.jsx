@@ -104,14 +104,14 @@ export const DistrictEndorsementModal = ({ application, onEndorse, onClose }) =>
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[#1E6045] flex items-center gap-1.5 font-heading">
                 <ShieldCheck className="w-4 h-4 text-[#287C5A]" />
-                Field Inspector Scrutiny Status: PASSED
+                Field Inspector Scrutiny: PASSED (Verified by {(application.verifierName && application.verifierName !== 'Anil Sharma') ? application.verifierName : 'Sahana'})
               </span>
               <span className="text-[11px] font-mono text-[#526270]">
                 {application.verificationDate ? new Date(application.verificationDate).toLocaleDateString('en-IN') : 'Recently Inspected'}
               </span>
             </div>
             <p className="text-xs text-[#17324D] leading-relaxed bg-white/80 p-2.5 rounded-lg border border-[#287C5A]/20">
-              <span className="font-bold text-[#1E6045]">Inspector Remarks: </span>
+              <span className="font-bold text-[#1E6045]">Inspector Remarks ({(application.verifierName && application.verifierName !== 'Anil Sharma') ? application.verifierName : 'Sahana'}): </span>
               {application.verifierRemarks || 'All applicant eligibility records and land boundaries verified against digital revenue cadastre.'}
             </p>
           </div>

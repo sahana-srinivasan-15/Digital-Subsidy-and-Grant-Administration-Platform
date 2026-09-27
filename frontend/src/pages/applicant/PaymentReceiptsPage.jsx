@@ -6,10 +6,22 @@ import { downloadVoucherPdf } from '../../utils/voucherPdf';
 export const PaymentReceiptsPage = () => {
   const { currentUser, applications, showToast } = useApp();
 
-  const paidApps = applications.filter(a =>
-    (a.applicantId === currentUser.id || a.applicantEmail === currentUser.email) &&
-    (a.status === 'PAID' || a.status === 'APPROVED' || a.paymentStatus === 'PAID')
-  );
+  const paidApps = (applications || []).filter(a => {
+    if (!currentUser) return false;
+    const currentId = currentUser.id ? String(currentUser.id) : '';
+    const currentBackendId = currentUser.backendId ? Number(currentUser.backendId) : null;
+    const currentEmail = currentUser.email ? currentUser.email.toLowerCase().trim() : '';
+
+    const appApplicantId = a.applicantId ? String(a.applicantId) : '';
+    const appBackendId = a.applicantBackendId ? Number(a.applicantBackendId) : null;
+    const appEmail = a.applicantEmail ? a.applicantEmail.toLowerCase().trim() : '';
+
+    const matchesUser = (currentBackendId && appBackendId && currentBackendId === appBackendId) ||
+      (currentId && appApplicantId && currentId === appApplicantId) ||
+      (currentEmail && appEmail && currentEmail === appEmail);
+
+    return matchesUser && (a.status === 'PAID' || a.status === 'APPROVED' || a.paymentStatus === 'PAID' || a.status === 'DISBURSED');
+  });
 
   const handleDownloadReceipt = (app) => {
     try {
@@ -38,7 +50,7 @@ export const PaymentReceiptsPage = () => {
         <div className="p-4 rounded-xl bg-[#0E2438] border border-[#D97706]/30 text-right">
           <div className="text-xs text-[#526270]">Total Grant Received</div>
           <div className="text-2xl font-extrabold text-[#287C5A] font-heading">
-            ₹{paidApps.reduce((sum, a) => sum + (a.approvedAmount || 0), 0).toLocaleString('en-IN')}
+            ₹{paidApps.reduce((sum, a) => sum + (Number(a.approvedAmount) || Number(a.requestedAmount) || 0), 0).toLocaleString('en-IN')}
           </div>
         </div>
       </div>
@@ -70,7 +82,7 @@ export const PaymentReceiptsPage = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs">
                   <div>
                     <span className="text-[#526270] text-[10px] uppercase font-semibold block">Disbursed Amount</span>
-                    <span className="text-[#287C5A] font-extrabold text-sm font-heading">₹{app.approvedAmount?.toLocaleString('en-IN')}</span>
+                    <span className="text-[#287C5A] font-extrabold text-sm font-heading">₹{Number(app.approvedAmount || app.requestedAmount || 0).toLocaleString('en-IN')}</span>
                   </div>
 
                   <div>

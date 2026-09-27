@@ -437,7 +437,7 @@ export const downloadAcknowledgementPdf = (app = {}) => {
     ['Scheme Category', app.schemeCategory || 'AGRICULTURE / CITIZEN WELFARE'],
     ['Subsidy Amount Requested', `INR ${Number(app.requestedAmount || 0).toLocaleString('en-IN')}`],
     ['Sanctioned Grant Amount', app.approvedAmount ? `INR ${Number(app.approvedAmount).toLocaleString('en-IN')}` : 'Pending Sanction Approval'],
-    ['Assigned Field Verifier', app.verifierName || 'Anil Sharma (Senior Field Inspector)'],
+    ['Assigned Field Verifier', (app.verifierName && app.verifierName !== 'Anil Sharma') ? app.verifierName : 'Sahana (Senior Field Inspector)'],
     ['Inspection Remarks', app.verifierRemarks || 'Aadhaar e-KYC documents attached for field scrutiny.'],
     ['Bank Account (APBS Seeded)', `${app.bankDetails?.bankName || 'State Bank of India'} (A/C: ••••${app.bankDetails?.accountNumber?.slice(-4) || '1024'})`],
     ['PFMS Transaction Reference', app.transactionId || 'Generated upon 100% Disbursal']

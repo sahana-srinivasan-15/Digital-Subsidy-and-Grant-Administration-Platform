@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, CheckCircle2, FileText, CheckCheck, XCircle, IndianRupee, AlertTriangle, ShieldCheck, UserX } from 'lucide-react';
+import { Clock, CheckCircle2, FileText, CheckCheck, XCircle, IndianRupee, AlertTriangle, ShieldCheck, UserX, Building2 } from 'lucide-react';
 
 export const StatusBadge = ({ status }) => {
   const configs = {
@@ -17,8 +17,22 @@ export const StatusBadge = ({ status }) => {
       border: '#FBE3B5',
       Icon: Clock
     },
+    DISTRICT_VERIFICATION: {
+      label: 'District Officer Verification',
+      bg: '#EFF6FF',
+      text: '#1D4ED8',
+      border: '#BFDBFE',
+      Icon: Building2
+    },
+    DISTRICT_REVIEW: {
+      label: 'District Officer Verification',
+      bg: '#EFF6FF',
+      text: '#1D4ED8',
+      border: '#BFDBFE',
+      Icon: Building2
+    },
     VERIFIED: {
-      label: 'Verified',
+      label: 'District Endorsed',
       bg: '#EAF5EF',
       text: '#287C5A',
       border: '#BCE3D2',

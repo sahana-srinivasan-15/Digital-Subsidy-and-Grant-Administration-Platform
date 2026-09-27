@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp, isNotificationForUser, isNotificationReadForUser } from '../../context/AppContext';
-import { getSafeAvatar } from '../../utils/avatar';
+import { getInitial } from '../../utils/avatar';
 import { NotificationDrawer } from './NotificationDrawer';
 import { 
   Landmark, 
@@ -48,16 +48,8 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   const user = currentUser || {
     name: 'Government User',
     role: currentRole || 'APPLICANT',
-    avatar: getSafeAvatar('Government User', currentRole || 'APPLICANT'),
     email: 'user@gov.in'
   };
-
-  const isDistrictOfficer =
-    currentRole === 'DISTRICT_OFFICER' ||
-    user?.role === 'DISTRICT_OFFICER' ||
-    user?.email === 'kavitha@gmail.com' ||
-    user?.email === 'district@gov.in' ||
-    (user?.name && user.name.toLowerCase().includes('kavitha'));
 
   const unreadCount = notifications.filter(
     n => isNotificationForUser(n, currentUser || user) && !isNotificationReadForUser(n, currentUser || user)
@@ -215,18 +207,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   }`}
                   title="Account Details & Settings"
                 >
-                  {isDistrictOfficer ? (
-                    <div className="w-7 h-7 rounded-lg bg-[#EFF6FF] border border-[#1D4ED8]/40 text-[#1D4ED8] flex items-center justify-center flex-shrink-0 shadow-2xs" title="District Nodal Officer (Official Government Emblem)">
-                      <Building2 className="w-4 h-4 text-[#1D4ED8]" />
-                    </div>
-                  ) : (
-                    <img
-                      src={getSafeAvatar(user, currentRole)}
-                      alt={user.name}
-                      onError={(e) => { e.currentTarget.src = getSafeAvatar(user.name, user.role || currentRole); }}
-                      className="w-7 h-7 rounded-lg object-cover border border-[#DDE3E7] flex-shrink-0"
-                    />
-                  )}
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#17324D] text-white flex items-center justify-center font-extrabold text-xs sm:text-sm flex-shrink-0 shadow-2xs border border-[#17324D]/30">
+                    {getInitial(user.name)}
+                  </div>
                   <div className="text-left hidden sm:block leading-tight">
                     <div className="text-xs font-bold text-[#17324D] truncate max-w-[85px] lg:max-w-[105px] xl:max-w-[140px]">
                       {user.name}
@@ -243,18 +226,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                     {/* User Header Summary */}
                     <div className="px-3 py-2.5 border-b border-[#DDE3E7] mb-1.5 bg-[#F8FAFC] rounded-xl">
                       <div className="flex items-center gap-2.5">
-                        {isDistrictOfficer ? (
-                          <div className="w-9 h-9 rounded-xl bg-[#EFF6FF] border border-[#1D4ED8]/40 text-[#1D4ED8] flex items-center justify-center flex-shrink-0 shadow-2xs" title="District Nodal Officer">
-                            <Building2 className="w-5 h-5 text-[#1D4ED8]" />
-                          </div>
-                        ) : (
-                          <img
-                            src={getSafeAvatar(user, currentRole)}
-                            alt={user.name}
-                            onError={(e) => { e.currentTarget.src = getSafeAvatar(user.name, user.role || currentRole); }}
-                            className="w-9 h-9 rounded-xl object-cover border border-[#DDE3E7] flex-shrink-0"
-                          />
-                        )}
+                        <div className="w-9 h-9 rounded-xl bg-[#17324D] text-[#FFF3E0] border border-[#D97706]/40 flex items-center justify-center font-extrabold text-sm flex-shrink-0 shadow-xs">
+                          {getInitial(user.name)}
+                        </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-xs font-bold text-[#17324D] truncate">{user.name}</p>
                           <p className="text-[10px] text-[#526270] truncate">{user.email}</p>

@@ -10,6 +10,8 @@ import {
   Search, 
   Download, 
   Shield, 
+  ShieldCheck,
+  Eye,
   Clock 
 } from 'lucide-react';
 import { 
@@ -22,24 +24,39 @@ import {
 export const AuthorityDashboard = ({ activeTab = 'dashboard', setActiveTab }) => {
   const { applications, schemes, approveSanction, disburseApplication, auditLogs, showToast } = useApp();
   const [selectedApp, setSelectedApp] = useState(null);
-  const [filterStatus, setFilterStatus] = useState('VERIFIED');
+  const [filterStatus, setFilterStatus] = useState('ENDORSED');
   const [searchTerm, setSearchTerm] = useState('');
   const [auditSearchTerm, setAuditSearchTerm] = useState('');
   const validTabs = ['dashboard', 'funds', 'approvals', 'audit', 'sanction', 'utilization', 'registry', 'logs'];
   const currentTab = validTabs.includes(activeTab) ? activeTab : 'dashboard';
 
-  // Authority queue: verifier-approved applications
-  const verifiedApps = applications.filter(a => {
-    const matchesStatus = filterStatus === 'ALL' || a.status === filterStatus;
-    const matchesSearch = a.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          a.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          a.schemeTitle.toLowerCase().includes(searchTerm.toLowerCase());
+  // Authority queue: filter applications respecting District Endorsement
+  const verifiedApps = (applications || []).filter(a => {
+    if (!a) return false;
+    let matchesStatus = true;
+    if (filterStatus === 'ENDORSED') {
+      matchesStatus = (a.status === 'VERIFIED' || a.status === 'DISTRICT_VERIFICATION') && a.districtEndorsed === true;
+    } else if (filterStatus === 'PENDING_DISTRICT') {
+      matchesStatus = a.status === 'DISTRICT_VERIFICATION' || (a.status === 'VERIFIED' && !a.districtEndorsed);
+    } else if (filterStatus === 'VERIFIED') {
+      matchesStatus = a.status === 'VERIFIED' || a.status === 'DISTRICT_VERIFICATION';
+    } else if (filterStatus === 'APPROVED') {
+      matchesStatus = a.status === 'APPROVED' || a.status === 'PAID';
+    } else if (filterStatus !== 'ALL') {
+      matchesStatus = a.status === filterStatus;
+    }
+    const term = (searchTerm || '').toLowerCase().trim();
+    const matchesSearch = !term ||
+                          (a.id || '').toLowerCase().includes(term) ||
+                          (a.applicantName || '').toLowerCase().includes(term) ||
+                          (a.schemeTitle || '').toLowerCase().includes(term);
     return matchesStatus && matchesSearch;
   });
 
-  const awaitingCount = applications.filter(a => a.status === 'VERIFIED').length;
-  const approvedCount = applications.filter(a => a.status === 'APPROVED' || a.status === 'PAID').length;
-  const totalDisbursed = applications.filter(a => a.status === 'PAID').reduce((sum, a) => sum + (a.approvedAmount || 0), 0);
+  const awaitingCount = (applications || []).filter(a => (a.status === 'VERIFIED' || a.status === 'DISTRICT_VERIFICATION') && a.districtEndorsed).length;
+  const pendingDistrictCount = (applications || []).filter(a => a.status === 'DISTRICT_VERIFICATION' || (a.status === 'VERIFIED' && !a.districtEndorsed)).length;
+  const approvedCount = (applications || []).filter(a => a.status === 'APPROVED' || a.status === 'PAID').length;
+  const totalDisbursed = (applications || []).filter(a => a.status === 'PAID').reduce((sum, a) => sum + (a.approvedAmount || 0), 0);
 
   // Authority relevant audit logs
   const sanctionLogs = (auditLogs || []).filter(l => {
@@ -110,10 +127,15 @@ export const AuthorityDashboard = ({ activeTab = 'dashboard', setActiveTab }) =>
           <p className="text-xs text-[#DDE3E7]">Sanction verifier-approved grants and authorize Direct Bank Transfer (DBT) payment releases.</p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="px-4 py-2.5 rounded-full bg-[#0E2438] border border-[#D97706]/50 text-[#FFF3E0] font-bold text-xs shadow-xs">
-            ● {awaitingCount} Verified Applications Awaiting Sanction
+            ● {awaitingCount} District-Endorsed Awaiting Sanction
           </div>
+          {pendingDistrictCount > 0 && (
+            <div className="px-3.5 py-1.5 rounded-full bg-[#0E2438]/80 border border-[#D97706]/30 text-[#DDE3E7] font-medium text-xs">
+              ○ {pendingDistrictCount} In District Review
+            </div>
+          )}
         </div>
       </div>
 
@@ -122,7 +144,7 @@ export const AuthorityDashboard = ({ activeTab = 'dashboard', setActiveTab }) =>
         <div className="stat-box">
           <div className="text-[#526270] text-xs font-semibold uppercase tracking-wider mb-1">Awaiting Sanction</div>
           <div className="text-2xl font-extrabold text-[#B7791F] font-heading">{awaitingCount}</div>
-          <div className="text-[11px] text-[#B7791F] font-bold mt-1">Ready for approval sign-off</div>
+          <div className="text-[11px] text-[#B7791F] font-bold mt-1">District Endorsed (Ready)</div>
         </div>
 
         <div className="stat-box">
@@ -152,8 +174,8 @@ export const AuthorityDashboard = ({ activeTab = 'dashboard', setActiveTab }) =>
           <div className="table-container">
             <div className="p-6 border-b border-[#DDE3E7] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white">
               <div>
-                <h3 className="text-base font-extrabold text-[#17324D] font-heading">Verified Applications Queue</h3>
-                <p className="text-xs text-[#526270]">Applications passed by field inspectors waiting for official sanction approval</p>
+                <h3 className="text-base font-extrabold text-[#17324D] font-heading">Sanction Queue & Review</h3>
+                <p className="text-xs text-[#526270]">Applications reviewed and endorsed by District Nodal Officer waiting for official sanction approval</p>
               </div>
 
               <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -174,7 +196,8 @@ export const AuthorityDashboard = ({ activeTab = 'dashboard', setActiveTab }) =>
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="bg-white border border-[#DDE3E7] rounded-full px-4 py-2 text-xs text-[#17324D] focus:outline-none focus:border-[#17324D] font-bold cursor-pointer"
                 >
-                  <option value="VERIFIED">Awaiting Sanction</option>
+                  <option value="ENDORSED">Awaiting Sanction (District Endorsed)</option>
+                  <option value="PENDING_DISTRICT">Pending District Review</option>
                   <option value="APPROVED">Approved / Disbursed</option>
                   <option value="ALL">All Applications</option>
                 </select>
@@ -189,7 +212,8 @@ export const AuthorityDashboard = ({ activeTab = 'dashboard', setActiveTab }) =>
                     <th className="px-6 py-3.5">Citizen Applicant</th>
                     <th className="px-6 py-3.5">Scheme</th>
                     <th className="px-6 py-3.5">Requested Amount</th>
-                    <th className="px-6 py-3.5">Inspector Verification</th>
+                    <th className="px-6 py-3.5">Field Inspection</th>
+                    <th className="px-6 py-3.5">District Endorsement</th>
                     <th className="px-6 py-3.5">Status</th>
                     <th className="px-6 py-3.5 text-right">Action</th>
                   </tr>
@@ -198,8 +222,8 @@ export const AuthorityDashboard = ({ activeTab = 'dashboard', setActiveTab }) =>
                 <tbody className="divide-y divide-[#DDE3E7] bg-white">
                   {verifiedApps.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-[#7C8992]">
-                        No applications currently awaiting sanction decision.
+                      <td colSpan={8} className="px-6 py-12 text-center text-[#7C8992]">
+                        No applications currently matching queue criteria.
                       </td>
                     </tr>
                   ) : (
@@ -215,20 +239,55 @@ export const AuthorityDashboard = ({ activeTab = 'dashboard', setActiveTab }) =>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-1.5 text-[#287C5A] font-semibold text-[11px]">
                             <CheckCircle2 className="w-4 h-4 text-[#287C5A]" />
-                            <span>Passed Inspector Scrutiny</span>
+                            <span>Passed Field Scrutiny</span>
                           </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {app.districtEndorsed ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EAF5EF] text-[#287C5A] border border-[#287C5A]/30 font-bold text-[10px]">
+                              <ShieldCheck className="w-3.5 h-3.5 text-[#287C5A]" />
+                              <span>Endorsed to State</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF8E6] text-[#D97706] border border-[#D97706]/40 font-bold text-[10px]">
+                              <Clock className="w-3.5 h-3.5 text-[#D97706]" />
+                              <span>Pending District Review</span>
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <StatusBadge status={app.status} />
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => setSelectedApp(app)}
-                            className="px-4 py-2 rounded-full bg-[#D97706] hover:bg-[#B45309] text-white font-extrabold text-xs flex items-center gap-1.5 ml-auto shadow-xs tracking-wider transition cursor-pointer"
-                          >
-                            <Award className="w-3.5 h-3.5 text-white" />
-                            <span>Review & Sanction</span>
-                          </button>
+                          {app.districtEndorsed ? (
+                            <button
+                              onClick={() => setSelectedApp(app)}
+                              className="px-4 py-2 rounded-full bg-[#D97706] hover:bg-[#B45309] text-white font-extrabold text-xs flex items-center gap-1.5 ml-auto shadow-xs tracking-wider transition cursor-pointer"
+                            >
+                              <Award className="w-3.5 h-3.5 text-white" />
+                              <span>Review & Sanction</span>
+                            </button>
+                          ) : app.status === 'APPROVED' || app.status === 'PAID' ? (
+                            <button
+                              onClick={() => setSelectedApp(app)}
+                              className="px-3.5 py-1.5 rounded-full bg-[#F8FAFC] hover:bg-[#E2E8F0] text-[#17324D] border border-[#DDE3E7] font-bold text-xs flex items-center gap-1.5 ml-auto cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-[#287C5A]" />
+                              <span>View Details</span>
+                            </button>
+                          ) : (
+                            <div className="flex flex-col items-end gap-1">
+                              <button
+                                disabled
+                                className="px-3.5 py-1.5 rounded-full bg-[#F1F5F9] text-[#94A3B8] border border-[#CBD5E1] font-bold text-[11px] flex items-center gap-1.5 ml-auto cursor-not-allowed opacity-80"
+                                title="Application must first be reviewed and endorsed by District Nodal Officer"
+                              >
+                                <Clock className="w-3.5 h-3.5 text-[#94A3B8]" />
+                                <span>Awaiting District Review</span>
+                              </button>
+                              <span className="text-[10px] text-[#D97706] font-medium">Pending District Endorsement</span>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))

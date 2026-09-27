@@ -29,9 +29,12 @@ export const ApplicationsHistoryPage = ({ onFileGrievance }) => {
   });
 
   const filteredApps = myApps.filter(app => {
+    if (!app) return false;
     const matchesStatus = filterStatus === 'ALL' || app.status === filterStatus;
-    const matchesSearch = app.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          app.schemeTitle.toLowerCase().includes(searchTerm.toLowerCase());
+    const term = (searchTerm || '').toLowerCase().trim();
+    const matchesSearch = !term ||
+                          (app.id || '').toLowerCase().includes(term) ||
+                          (app.schemeTitle || '').toLowerCase().includes(term);
     return matchesStatus && matchesSearch;
   });
 
@@ -132,7 +135,7 @@ export const ApplicationsHistoryPage = ({ onFileGrievance }) => {
 
                 <h3 className="text-base font-bold text-[#17324D] font-heading">{app.schemeTitle}</h3>
                 <p className="text-xs text-[#526270]">
-                  Submitted: {new Date(app.submittedDate).toLocaleDateString('en-IN')} • Requested: <strong className="text-[#287C5A] font-extrabold">₹{app.requestedAmount?.toLocaleString('en-IN')}</strong>
+                  Submitted: {app.submittedDate ? new Date(app.submittedDate).toLocaleDateString('en-IN') : 'Recently'} • Requested: <strong className="text-[#287C5A] font-extrabold">₹{Number(app.requestedAmount || 0).toLocaleString('en-IN')}</strong>
                 </p>
               </div>
 

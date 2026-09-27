@@ -28,7 +28,7 @@ import { exportAuditTrailToCsv, generateAuditTrailPdf } from '../utils/exportUti
 export const DistrictOfficerDashboard = ({ activeTab = 'dashboard', setActiveTab }) => {
   const { applications, schemes, endorseDistrictApplication, auditLogs, showToast, currentUser } = useApp();
   const [selectedApp, setSelectedApp] = useState(null);
-  const [selectedDistrict, setSelectedDistrict] = useState('Medak');
+  const [selectedDistrict, setSelectedDistrict] = useState('ALL');
   const [talukFilter, setTalukFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,7 +39,7 @@ export const DistrictOfficerDashboard = ({ activeTab = 'dashboard', setActiveTab
   const currentTab = validTabs.includes(activeTab) ? activeTab : 'dashboard';
 
   // Available districts in platform
-  const districts = ['Medak', 'Rangareddy', 'Hyderabad', 'Warangal', 'ALL'];
+  const districts = ['ALL', 'Medak', 'Rangareddy', 'Hyderabad', 'Warangal'];
 
   // Applications filtered by district jurisdiction
   const districtApps = (applications || []).filter(a => {
@@ -59,8 +59,8 @@ export const DistrictOfficerDashboard = ({ activeTab = 'dashboard', setActiveTab
     const matchesTaluk = talukFilter === 'ALL' || a.applicantTaluk === talukFilter;
     const matchesStatus = statusFilter === 'ALL' 
       ? true 
-      : statusFilter === 'PENDING_ENDORSEMENT' 
-        ? (a.status === 'VERIFIED' && !a.districtEndorsed)
+      : statusFilter === 'PENDING_ENDORSEMENT' || statusFilter === 'DISTRICT_VERIFICATION'
+        ? (!a.districtEndorsed && (a.status === 'DISTRICT_VERIFICATION' || a.status === 'VERIFIED' || a.status === 'UNDER_VERIFICATION'))
         : statusFilter === 'ENDORSED'
           ? a.districtEndorsed
           : a.status === statusFilter;
@@ -69,8 +69,8 @@ export const DistrictOfficerDashboard = ({ activeTab = 'dashboard', setActiveTab
 
   // Metrics
   const totalInDistrict = districtApps.length;
-  const verifiedCount = districtApps.filter(a => a.status === 'VERIFIED' || a.status === 'APPROVED' || a.status === 'PAID').length;
-  const pendingEndorsementCount = districtApps.filter(a => a.status === 'VERIFIED' && !a.districtEndorsed).length;
+  const verifiedCount = districtApps.filter(a => a.status === 'VERIFIED' || a.status === 'DISTRICT_VERIFICATION' || a.status === 'APPROVED' || a.status === 'PAID').length;
+  const pendingEndorsementCount = districtApps.filter(a => !a.districtEndorsed && (a.status === 'DISTRICT_VERIFICATION' || a.status === 'VERIFIED' || a.status === 'UNDER_VERIFICATION')).length;
   const endorsedCount = districtApps.filter(a => a.districtEndorsed).length;
   const disbursedTotal = districtApps.filter(a => a.status === 'PAID').reduce((sum, a) => sum + (a.approvedAmount || a.requestedAmount || 0), 0);
 
@@ -78,7 +78,7 @@ export const DistrictOfficerDashboard = ({ activeTab = 'dashboard', setActiveTab
   const talukStats = [
     { name: 'Medak North', inspector: 'Sahana (Inspector)', apps: districtApps.filter(a => a.applicantTaluk === 'Medak North').length || 2, verified: 2, avgTurnaround: '1.4 days' },
     { name: 'Ramayampet', inspector: 'Sahana (Inspector)', apps: districtApps.filter(a => a.applicantTaluk === 'Ramayampet').length || 1, verified: 1, avgTurnaround: '1.8 days' },
-    { name: 'Toopran', inspector: 'Anil Sharma (Inspector)', apps: districtApps.filter(a => a.applicantTaluk === 'Toopran').length || 1, verified: 1, avgTurnaround: '2.1 days' },
+    { name: 'Toopran', inspector: 'Sahana (Inspector)', apps: districtApps.filter(a => a.applicantTaluk === 'Toopran').length || 1, verified: 1, avgTurnaround: '2.1 days' },
     { name: 'Narsapur', inspector: 'Sahana (Inspector)', apps: districtApps.filter(a => a.applicantTaluk === 'Narsapur').length || 1, verified: 1, avgTurnaround: '1.6 days' }
   ];
 
@@ -222,7 +222,7 @@ export const DistrictOfficerDashboard = ({ activeTab = 'dashboard', setActiveTab
                 className="bg-white border border-[#DDE3E7] rounded-full px-3.5 py-2 text-xs text-[#17324D] focus:outline-none focus:border-[#17324D] font-bold cursor-pointer shadow-xs"
               >
                 <option value="ALL">All Statuses</option>
-                <option value="PENDING_ENDORSEMENT">Awaiting District Endorsement</option>
+                <option value="PENDING_ENDORSEMENT">Awaiting District Verification</option>
                 <option value="ENDORSED">District Endorsed</option>
                 <option value="PAID">DBT Disbursed</option>
               </select>
@@ -278,7 +278,7 @@ export const DistrictOfficerDashboard = ({ activeTab = 'dashboard', setActiveTab
                         ) : (
                           <div className="flex items-center gap-1.5 text-[#287C5A] font-semibold text-[11px]">
                             <CheckCircle2 className="w-4 h-4 text-[#287C5A]" />
-                            <span>Verified by {app.verifierName || 'Sahana'}</span>
+                            <span>Verified by {(app.verifierName && app.verifierName !== 'Anil Sharma') ? app.verifierName : 'Sahana'}</span>
                           </div>
                         )}
                       </td>
@@ -287,9 +287,9 @@ export const DistrictOfficerDashboard = ({ activeTab = 'dashboard', setActiveTab
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EAF5EF] text-[#287C5A] border border-[#287C5A]/30 font-bold text-[10px]">
                             <ShieldCheck className="w-3.5 h-3.5" /> Endorsed to State
                           </span>
-                        ) : app.status === 'VERIFIED' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF8E6] text-[#D97706] border border-[#D97706]/40 font-bold text-[10px]">
-                            <Clock className="w-3.5 h-3.5" /> Pending Endorsement
+                        ) : (app.status === 'DISTRICT_VERIFICATION' || app.status === 'VERIFIED') ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#EFF6FF] text-[#1D4ED8] border border-[#1D4ED8]/30 font-bold text-[10px]">
+                            <Clock className="w-3.5 h-3.5" /> Ready for District Verification
                           </span>
                         ) : (
                           <span className="text-[11px] text-[#7C8992]">Under Scrutiny</span>
@@ -306,7 +306,7 @@ export const DistrictOfficerDashboard = ({ activeTab = 'dashboard', setActiveTab
                             className="px-4 py-2 rounded-full bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-extrabold text-xs flex items-center gap-1.5 ml-auto shadow-xs tracking-wider transition cursor-pointer"
                           >
                             <Building2 className="w-3.5 h-3.5 text-white" />
-                            <span>Review & Endorse</span>
+                            <span>Verify & Endorse</span>
                           </button>
                         )}
                       </td>

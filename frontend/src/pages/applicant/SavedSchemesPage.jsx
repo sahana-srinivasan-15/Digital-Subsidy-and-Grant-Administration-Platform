@@ -20,13 +20,14 @@ export const SavedSchemesPage = ({ onStartApply, onExploreSchemes, setActiveTab 
   const [selectedSchemeForCriteria, setSelectedSchemeForCriteria] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const savedList = getSavedSchemes();
+  const savedList = (getSavedSchemes ? getSavedSchemes() : []) || [];
 
   const filteredList = savedList.filter(sch => {
-    const term = searchTerm.toLowerCase();
-    return sch.title.toLowerCase().includes(term) ||
-           sch.category.toLowerCase().includes(term) ||
-           sch.description.toLowerCase().includes(term);
+    if (!sch) return false;
+    const term = (searchTerm || '').toLowerCase().trim();
+    return (sch.title || '').toLowerCase().includes(term) ||
+           (sch.category || '').toLowerCase().includes(term) ||
+           (sch.description || sch.shortDesc || '').toLowerCase().includes(term);
   });
 
   return (

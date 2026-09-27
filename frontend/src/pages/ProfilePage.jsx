@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { getSafeAvatar } from '../utils/avatar';
+import { getInitial } from '../utils/avatar';
 import {
   User,
   ShieldCheck,
@@ -29,20 +29,12 @@ export const ProfilePage = ({ setActiveTab }) => {
     name: 'Authorized Citizen',
     email: 'citizen@gov.in',
     role: currentRole || 'APPLICANT',
-    avatar: getSafeAvatar('Authorized Citizen', currentRole || 'APPLICANT'),
     phone: '+91 98765 43210',
     address: 'H.No 4-12, Green Village, Medak',
     state: 'Telangana',
     district: 'Medak',
     status: 'ACTIVE'
   };
-
-  const isDistrictOfficer =
-    currentRole === 'DISTRICT_OFFICER' ||
-    user?.role === 'DISTRICT_OFFICER' ||
-    user?.email === 'kavitha@gmail.com' ||
-    user?.email === 'district@gov.in' ||
-    (user?.name && user.name.toLowerCase().includes('kavitha'));
 
   // Edit Mode state
   const [isEditing, setIsEditing] = useState(false);
@@ -94,18 +86,9 @@ export const ProfilePage = ({ setActiveTab }) => {
       <div className="bg-[#17324D] p-6 sm:p-8 rounded-2xl text-white shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-t-4 border-[#D97706]">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
           <div className="relative">
-            {isDistrictOfficer ? (
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#EFF6FF] border-2 border-[#D97706] shadow-md flex items-center justify-center text-[#1D4ED8] flex-shrink-0" title="Official District Nodal Directorate Insignia">
-                <Building2 className="w-10 h-10 sm:w-12 sm:h-12 text-[#1D4ED8]" />
-              </div>
-            ) : (
-              <img
-                src={getSafeAvatar(user, currentRole)}
-                alt={user.name}
-                onError={(e) => { e.currentTarget.src = getSafeAvatar(user.name, user.role || currentRole); }}
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-[#D97706] shadow-md"
-              />
-            )}
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-[#17324D] to-[#0E2438] border-2 border-[#D97706] shadow-md flex items-center justify-center font-extrabold text-3xl sm:text-4xl text-[#FFF3E0] font-heading flex-shrink-0 select-none">
+              {getInitial(user.name)}
+            </div>
             <span className="absolute -bottom-1 -right-1 p-1 bg-[#287C5A] rounded-full text-white border-2 border-[#17324D]" title="Identity Verified">
               <CheckCircle2 className="w-4 h-4" />
             </span>
@@ -511,18 +494,9 @@ export const ProfilePage = ({ setActiveTab }) => {
 
             <div className="p-6 space-y-5">
               <div className="flex items-center gap-4 bg-[#F8FAFC] p-4 rounded-2xl border border-[#DDE3E7]">
-                {isDistrictOfficer ? (
-                  <div className="w-16 h-16 rounded-2xl bg-[#EFF6FF] border-2 border-[#D97706] flex items-center justify-center text-[#1D4ED8] flex-shrink-0" title="Official District Nodal Directorate Insignia">
-                    <Building2 className="w-8 h-8 text-[#1D4ED8]" />
-                  </div>
-                ) : (
-                  <img
-                    src={getSafeAvatar(user, currentRole)}
-                    alt={user.name}
-                    onError={(e) => { e.currentTarget.src = getSafeAvatar(user.name, user.role || currentRole); }}
-                    className="w-16 h-16 rounded-2xl object-cover border-2 border-[#D97706]"
-                  />
-                )}
+                <div className="w-16 h-16 rounded-2xl bg-[#17324D] border-2 border-[#D97706] flex items-center justify-center font-extrabold text-2xl text-[#FFF3E0] font-heading flex-shrink-0 select-none shadow-xs">
+                  {getInitial(user.name)}
+                </div>
                 <div className="space-y-1 text-xs">
                   <div className="font-extrabold text-[#17324D] text-sm">{user.name}</div>
                   <div className="text-[#526270] font-mono">{user.phone || '+91 98765 43210'}</div>

@@ -96,27 +96,29 @@ export const downloadDigitalIdPassPdf = (user = {}, currentRole = 'CITIZEN') => 
   doc.setFont('helvetica', 'normal');
   doc.text(`PASS ID: ${docId}`, pageWidth - margin - 6, curY + 8, { align: 'right' });
 
-  // Photo Avatar Placeholder / Graphical representation
+  // Profile Initial Box (First Letter of Name - No Selfies or Avatars)
   const avatarX = margin + 8;
   const avatarY = curY + 18;
   const avatarW = 34;
   const avatarH = 40;
 
-  doc.setFillColor(240, 244, 248);
-  doc.setDrawColor(23, 50, 77);
+  doc.setFillColor(23, 50, 77);
+  doc.setDrawColor(217, 119, 6);
   doc.setLineWidth(0.8);
   doc.roundedRect(avatarX, avatarY, avatarW, avatarH, 3, 3, 'FD');
 
-  // Avatar Icon Graphics inside box
-  doc.setFillColor(23, 50, 77);
-  doc.circle(avatarX + avatarW / 2, avatarY + 14, 7, 'F');
-  doc.roundedRect(avatarX + 5, avatarY + 23, avatarW - 10, 14, 5, 5, 'F');
+  // First letter of user's name
+  const firstLetter = (userName || 'U').trim().charAt(0).toUpperCase();
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(24);
+  doc.setFont('helvetica', 'bold');
+  doc.text(firstLetter, avatarX + avatarW / 2, avatarY + 26, { align: 'center' });
 
-  // Photo caption
+  // Profile caption
   doc.setFontSize(6);
   doc.setTextColor(82, 98, 112);
   doc.setFont('helvetica', 'bold');
-  doc.text('DIGITALLY ATTESTED', avatarX + avatarW / 2, avatarY + avatarH + 4.5, { align: 'center' });
+  doc.text('OFFICIAL PROFILE', avatarX + avatarW / 2, avatarY + avatarH + 4.5, { align: 'center' });
 
   // Main Beneficiary Details (Next to Avatar)
   const detailX = avatarX + avatarW + 10;

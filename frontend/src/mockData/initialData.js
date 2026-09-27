@@ -11,7 +11,6 @@ export const initialUsers = [
     district: 'Hyderabad',
     income: 280000,
     age: 29,
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
     status: 'ACTIVE'
   },
   {
@@ -26,7 +25,6 @@ export const initialUsers = [
     district: 'Medak',
     income: 320000,
     age: 32,
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
     status: 'ACTIVE'
   },
   {
@@ -37,7 +35,6 @@ export const initialUsers = [
     password: 'sahana$45',
     department: 'Field Document Inspector Office',
     district: 'Medak Zone',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250',
     status: 'ACTIVE'
   },
   {
@@ -48,7 +45,6 @@ export const initialUsers = [
     password: 'mayur%34',
     department: 'State Grant Sanctioning Directorate',
     designation: 'Joint Director & Sanction Officer',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=250',
     status: 'ACTIVE'
   },
   {
@@ -58,7 +54,6 @@ export const initialUsers = [
     role: 'ADMINISTRATOR',
     password: 'sachin',
     department: 'Ministry of Digital Governance & Analytics',
-    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=250',
     status: 'ACTIVE'
   },
   {
@@ -84,7 +79,6 @@ export const initialUsers = [
     district: 'Warangal',
     income: 190000,
     age: 34,
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=250',
     status: 'ACTIVE'
   }
 ];
@@ -410,7 +404,7 @@ export const initialApplications = [
     submittedDate: '2026-09-08T10:30:00Z',
     status: 'UNDER_VERIFICATION', // DRAFT -> SUBMITTED -> UNDER_VERIFICATION -> VERIFIED -> APPROVED -> DISBURSED
     verifierId: 'usr-2',
-    verifierName: 'Anil Sharma',
+    verifierName: 'Sahana',
     verifierRemarks: 'Applicant land records verified against revenue registry. Awaiting document clarity check.',
     verificationDate: null,
     authorityId: 'usr-3',
@@ -481,9 +475,10 @@ export const initialApplications = [
     requestedAmount: 150000,
     approvedAmount: null,
     submittedDate: '2026-09-07T14:20:00Z',
-    status: 'VERIFIED', // Ready for Authority Sanction
+    status: 'VERIFIED', // Verified by Field Inspector; Awaiting District Endorsement
+    districtEndorsed: false,
     verifierId: 'usr-2',
-    verifierName: 'Anil Sharma',
+    verifierName: 'Sahana',
     verifierRemarks: 'All 4 documents verified physically and digitally via DigiLocker OCR. Applicant household income meets eligibility criteria.',
     verificationDate: '2026-09-09T11:00:00Z',
     authorityId: null,
@@ -505,8 +500,8 @@ export const initialApplications = [
     ],
     timeline: [
       { status: 'SUBMITTED', title: 'Application Submitted', date: '2026-09-07 02:20 PM', by: 'Sunita Devi' },
-      { status: 'UNDER_VERIFICATION', title: 'Documents Under Scrutiny', date: '2026-09-08 09:00 AM', by: 'Anil Sharma (Verifier)' },
-      { status: 'VERIFIED', title: 'Field & Document Verification Passed', date: '2026-09-09 11:00 AM', by: 'Anil Sharma (Verifier)' }
+      { status: 'UNDER_VERIFICATION', title: 'Documents Under Scrutiny', date: '2026-09-08 09:00 AM', by: 'Sahana (Verifier)' },
+      { status: 'VERIFIED', title: 'Field & Document Verification Passed', date: '2026-09-09 11:00 AM', by: 'Sahana (Verifier)' }
     ]
   },
   {
@@ -526,7 +521,7 @@ export const initialApplications = [
     submittedDate: '2026-09-05T09:10:00Z',
     status: 'PAID',
     verifierId: 'usr-2',
-    verifierName: 'Anil Sharma',
+    verifierName: 'Sahana',
     verifierRemarks: 'Student admission verified with Osmania University portal.',
     verificationDate: '2026-09-06T15:30:00Z',
     authorityId: 'usr-3',
@@ -549,7 +544,7 @@ export const initialApplications = [
     ],
     timeline: [
       { status: 'SUBMITTED', title: 'Application Submitted', date: '2026-09-05 09:10 AM', by: 'Vikram Singh' },
-      { status: 'VERIFIED', title: 'Documents Verified', date: '2026-09-06 03:30 PM', by: 'Anil Sharma' },
+      { status: 'VERIFIED', title: 'Documents Verified', date: '2026-09-06 03:30 PM', by: 'Sahana' },
       { status: 'APPROVED', title: 'Sanction Approved (₹40,000)', date: '2026-09-07 10:15 AM', by: 'Dr. Priya Varma' },
       { status: 'PAID', title: 'Direct Bank Transfer Processed', date: '2026-09-08 04:45 PM', by: 'Reserve Bank DBT Gateway' }
     ]
@@ -571,7 +566,7 @@ export const initialApplications = [
     submittedDate: '2026-09-10T11:15:00Z',
     status: 'UNDER_VERIFICATION',
     verifierId: 'usr-2',
-    verifierName: 'Anil Sharma',
+    verifierName: 'Sahana',
     verifierRemarks: 'Applicant land registry records uploaded. Awaiting physical field verification.',
     verificationDate: null,
     authorityId: null,
@@ -611,7 +606,7 @@ export const initialApplications = [
     ],
     timeline: [
       { status: 'SUBMITTED', title: 'Application Submitted', date: '2026-09-10 11:15 AM', by: 'Rajesh Patel (Citizen)' },
-      { status: 'UNDER_VERIFICATION', title: 'Assigned to Inspector Anil Sharma', date: '2026-09-10 01:00 PM', by: 'System Automation' }
+      { status: 'UNDER_VERIFICATION', title: 'Assigned to Inspector Sahana', date: '2026-09-10 01:00 PM', by: 'System Automation' }
     ]
   },
   {
@@ -631,7 +626,7 @@ export const initialApplications = [
     submittedDate: '2026-09-11T14:30:00Z',
     status: 'UNDER_VERIFICATION',
     verifierId: 'usr-2',
-    verifierName: 'Anil Sharma',
+    verifierName: 'Sahana',
     verifierRemarks: 'Self-help group affiliation and Udyam MSME certificate in order.',
     verificationDate: null,
     authorityId: null,
@@ -764,10 +759,107 @@ export const initialApplications = [
       { status: 'VERIFIED', title: 'Field Scrutiny Passed (Narsapur)', date: '2026-09-15 04:00 PM', by: 'Sahana (Inspector)' },
       { status: 'DISTRICT_ENDORSED', title: 'District Nodal Officer Endorsement Signed', date: '2026-09-16 10:30 AM', by: 'Kavitha Rao, IAS' }
     ]
+  },
+  {
+    id: 'APP-2026-1031',
+    applicantId: 'usr-shama',
+    applicantName: 'Shama',
+    applicantEmail: 'shama@gmail.com',
+    applicantPhone: '+91 98765 12345',
+    applicantAge: 29,
+    applicantIncome: 280000,
+    applicantState: 'Telangana',
+    applicantDistrict: 'Hyderabad',
+    schemeId: 'SCH-2026-03',
+    schemeTitle: 'Higher Education Digital Inclusion Laptop Subsidy',
+    requestedAmount: 40000,
+    approvedAmount: null,
+    submittedDate: '2026-09-15T09:30:00Z',
+    status: 'UNDER_VERIFICATION',
+    verifierId: 'usr-2',
+    verifierName: 'Sahana',
+    verifierRemarks: 'Aadhaar e-KYC verified. College enrollment records undergoing desk scrutiny.',
+    verificationDate: null,
+    authorityId: null,
+    authorityRemarks: null,
+    approvalDate: null,
+    paymentStatus: 'NOT_INITIATED',
+    transactionId: null,
+    paymentDate: null,
+    bankDetails: {
+      accountName: 'Shama',
+      accountNumber: '918200391024',
+      bankName: 'State Bank of India',
+      ifsc: 'SBIN0001024',
+      branch: 'Hyderabad Main'
+    },
+    documents: [
+      { id: 'doc-shama-1', name: 'Aadhaar_Card_Shama.pdf', type: 'Aadhaar Card', status: 'VERIFIED', size: '1.2 MB', uploadedAt: '2026-09-15T09:20:00Z', ocrConfidence: '99%' },
+      { id: 'doc-shama-2', name: 'Income_Certificate_2026.pdf', type: 'Income Certificate', status: 'VERIFIED', size: '850 KB', uploadedAt: '2026-09-15T09:25:00Z', ocrConfidence: '96%' }
+    ],
+    timeline: [
+      { status: 'SUBMITTED', title: 'Application Submitted', date: '2026-09-15 09:30 AM', by: 'Shama (Citizen)' },
+      { status: 'UNDER_VERIFICATION', title: 'Assigned to Verification Desk', date: '2026-09-15 02:00 PM', by: 'System Automation' }
+    ]
+  },
+  {
+    id: 'APP-2026-1032',
+    applicantId: 'usr-shama',
+    applicantName: 'Shama',
+    applicantEmail: 'shama@gmail.com',
+    applicantPhone: '+91 98765 12345',
+    applicantAge: 29,
+    applicantIncome: 280000,
+    applicantState: 'Telangana',
+    applicantDistrict: 'Hyderabad',
+    schemeId: 'SCH-2026-04',
+    schemeTitle: 'Women Entrepreneurship Seed Capital Subsidy',
+    requestedAmount: 50000,
+    approvedAmount: 50000,
+    submittedDate: '2026-08-20T10:00:00Z',
+    status: 'PAID',
+    verifierId: 'usr-2',
+    verifierName: 'Sahana',
+    verifierRemarks: 'Applicant business proposal and KYC validated.',
+    verificationDate: '2026-08-22T11:00:00Z',
+    authorityId: 'usr-3',
+    authorityName: 'Mayur',
+    authorityRemarks: 'Sanction approved for women self-employment grant.',
+    approvalDate: '2026-08-23T14:30:00Z',
+    paymentStatus: 'PAID',
+    transactionId: 'TXN-DBT-2026-92817294',
+    paymentDate: '2026-08-25T16:00:00Z',
+    bankDetails: {
+      accountName: 'Shama',
+      accountNumber: '918200391024',
+      bankName: 'State Bank of India',
+      ifsc: 'SBIN0001024',
+      branch: 'Hyderabad Main'
+    },
+    documents: [
+      { id: 'doc-shama-3', name: 'Aadhaar_Card_Shama.pdf', type: 'Aadhaar Card', status: 'VERIFIED', size: '1.2 MB', uploadedAt: '2026-08-20T09:40:00Z', ocrConfidence: '99%' }
+    ],
+    timeline: [
+      { status: 'SUBMITTED', title: 'Application Submitted', date: '2026-08-20 10:00 AM', by: 'Shama (Citizen)' },
+      { status: 'VERIFIED', title: 'Documents Verified', date: '2026-08-22 11:00 AM', by: 'Sahana' },
+      { status: 'APPROVED', title: 'Sanction Approved (₹50,000)', date: '2026-08-23 02:30 PM', by: 'Mayur' },
+      { status: 'PAID', title: 'Direct Bank Transfer Processed', date: '2026-08-25 04:00 PM', by: 'Reserve Bank DBT Gateway' }
+    ]
   }
 ];
 
 export const initialNotifications = [
+  {
+    id: 'notif-shama-1',
+    userId: 'usr-shama',
+    userEmail: 'shama@gmail.com',
+    userRole: 'APPLICANT',
+    title: 'Verification In Progress',
+    message: 'Your application APP-2026-1031 for Higher Education Subsidy is under active document scrutiny by Inspector Sahana.',
+    timestamp: '1 hour ago',
+    read: false,
+    type: 'INFO'
+  },
   {
     id: 'notif-1',
     userId: 'usr-1',
@@ -807,7 +899,7 @@ export const initialNotifications = [
     userEmail: 'authority@gov.in',
     userRole: 'AUTHORITY',
     title: 'Sanction Approval Pending',
-    message: 'Application APP-2026-1025 has been verified by Inspector Anil Sharma and is awaiting your sanction decision.',
+    message: 'Application APP-2026-1025 has been verified by Inspector Sahana and is awaiting your sanction decision.',
     timestamp: '1 day ago',
     read: false,
     type: 'SUCCESS'
@@ -850,6 +942,6 @@ export const initialAuditLogs = [
   { id: 'log-0', timestamp: '2026-09-08 17:15:00', actor: 'Kavitha Rao, IAS (District Officer)', actorName: 'Kavitha Rao, IAS', actorRole: 'DISTRICT_OFFICER', eventCategory: 'DISTRICT_ENDORSEMENT', action: 'DISTRICT_ENDORSEMENT', details: 'Endorsed Medak district quota for APP-2026-1024 to State Directorate', ip: '10.0.3.15', ipAddress: '10.0.3.15', severity: 'INFO' },
   { id: 'log-1', timestamp: '2026-09-08 16:45:00', actor: 'DBT Payment System', actorName: 'DBT Payment System', actorRole: 'ADMINISTRATOR', eventCategory: 'DBT_DISBURSED', action: 'PAYMENT_DISBURSED', details: 'Transferred ₹40,000 to APP-2026-1026 (Txn: TXN-DBT-2026-89481920)', ip: '10.0.4.12', ipAddress: '10.0.4.12', severity: 'INFO' },
   { id: 'log-2', timestamp: '2026-09-07 10:15:00', actor: 'Dr. Priya Varma (Authority)', actorName: 'Dr. Priya Varma', actorRole: 'AUTHORITY', eventCategory: 'SANCTION_APPROVED', action: 'SANCTION_APPROVED', details: 'Approved ₹40,000 grant for APP-2026-1026', ip: '10.0.2.88', ipAddress: '10.0.2.88', severity: 'INFO' },
-  { id: 'log-3', timestamp: '2026-09-06 15:30:00', actor: 'Anil Sharma (Verifier)', actorName: 'Anil Sharma', actorRole: 'VERIFIER', eventCategory: 'DOCS_VERIFIED', action: 'DOCUMENTS_VERIFIED', details: 'Verified all attached student records for APP-2026-1026', ip: '10.0.1.45', ipAddress: '10.0.1.45', severity: 'INFO' },
+  { id: 'log-3', timestamp: '2026-09-06 15:30:00', actor: 'Sahana (Verifier)', actorName: 'Sahana', actorRole: 'VERIFIER', eventCategory: 'DOCS_VERIFIED', action: 'DOCUMENTS_VERIFIED', details: 'Verified all attached student records for APP-2026-1026', ip: '10.0.1.45', ipAddress: '10.0.1.45', severity: 'INFO' },
   { id: 'log-4', timestamp: '2026-09-05 09:10:00', actor: 'Vikram Singh (Applicant)', actorName: 'Vikram Singh', actorRole: 'APPLICANT', eventCategory: 'APPLICATION_SUBMITTED', action: 'APPLICATION_SUBMITTED', details: 'Created and submitted APP-2026-1026', ip: '182.74.12.9', ipAddress: '182.74.12.9', severity: 'INFO' }
 ];

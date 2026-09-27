@@ -10,8 +10,6 @@ import {
   Shield,
   Landmark,
   User,
-  IndianRupee,
-  FileCheck2,
   Calendar,
   Building2,
   Phone
@@ -30,10 +28,17 @@ export const ApplicationStatusTracker = ({
   const { showToast } = useApp() || {};
   if (!application) return null;
 
+  const isEndorsed = Boolean(
+    application.districtEndorsed || 
+    (Array.isArray(application.timeline) && application.timeline.some(t => t.status === 'DISTRICT_ENDORSED')) ||
+    application.status === 'APPROVED' || 
+    application.status === 'PAID'
+  );
+
   const stages = [
     { key: 'SUBMITTED', label: 'Application Submitted', desc: 'Application received and registered in national DBT registry.' },
-    { key: 'UNDER_VERIFICATION', label: 'Under Review & Scrutiny', desc: 'Authorized field officer conducting document scrutiny & criteria verification.' },
-    { key: 'VERIFIED', label: 'Documents Verified', desc: 'All certificates, land records & applicant credentials audited and approved.' },
+    { key: 'UNDER_VERIFICATION', label: 'Field Document Scrutiny', desc: 'Authorized field officer conducting document scrutiny & criteria verification.' },
+    { key: 'DISTRICT_VERIFICATION', label: 'District Officer Verification', desc: 'District Nodal Collectorate verifying block dossier and applying quota endorsement.' },
     { key: 'APPROVED', label: 'Sanction Approved', desc: 'Competent Sanctioning Directorate authorized grant release.' },
     { key: 'PAID', label: 'DBT Disbursed', desc: 'Benefit amount credited directly to beneficiary bank account via PFMS gateway.' }
   ];
@@ -59,10 +64,22 @@ export const ApplicationStatusTracker = ({
       return 'pending';
     }
 
-    if (normStatus === 'VERIFIED') {
-      if (idx <= 2) return 'completed';
-      if (idx === 3) return 'current';
+    if (normStatus === 'DISTRICT_VERIFICATION' || normStatus === 'DISTRICT_REVIEW') {
+      if (idx <= 1) return 'completed';
+      if (idx === 2) return 'current';
       return 'pending';
+    }
+
+    if (normStatus === 'VERIFIED') {
+      if (isEndorsed) {
+        if (idx <= 2) return 'completed';
+        if (idx === 3) return 'current';
+        return 'pending';
+      } else {
+        if (idx <= 1) return 'completed';
+        if (idx === 2) return 'current';
+        return 'pending';
+      }
     }
 
     if (idx === 0) return 'completed';
@@ -76,7 +93,8 @@ export const ApplicationStatusTracker = ({
       timelineEntry = application.timeline.find(t => 
         t.status === stKey || 
         (stKey === 'PAID' && (t.status === 'DISBURSED' || t.status === 'PAID')) ||
-        (stKey === 'UNDER_VERIFICATION' && (t.status === 'IN_REVIEW' || t.status === 'UNDER_VERIFICATION'))
+        ((stKey === 'DISTRICT_VERIFICATION' || stKey === 'DISTRICT_REVIEW') && (t.status === 'DISTRICT_VERIFICATION' || t.status === 'DISTRICT_ENDORSED' || t.status === 'PENDING_DISTRICT_ENDORSEMENT')) ||
+        (stKey === 'UNDER_VERIFICATION' && (t.status === 'IN_REVIEW' || t.status === 'UNDER_VERIFICATION' || t.status === 'FIELD_VERIFIED'))
       );
     }
 
@@ -105,18 +123,31 @@ export const ApplicationStatusTracker = ({
         }
         actor = application.verifierName || 'Field Scrutiny Officer';
         remarks = application.verifierRemarks || remarks || 'Conducting scrutiny of uploaded certificates & income criteria.';
-      } else if (stKey === 'VERIFIED') {
-        if (state === 'completed' && application.verificationDate) {
-          dateStr = new Date(application.verificationDate).toLocaleString('en-IN', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
+      } else if (stKey === 'DISTRICT_VERIFICATION' || stKey === 'DISTRICT_REVIEW') {
+        const districtTimeline = Array.isArray(application.timeline) 
+          ? application.timeline.find(t => t.status === 'DISTRICT_ENDORSED' || t.status === 'DISTRICT_VERIFICATION') 
+          : null;
+        if (isEndorsed) {
+          dateStr = application.districtEndorsementDate 
+            ? new Date(application.districtEndorsementDate).toLocaleString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+            : (districtTimeline?.date || 'Endorsement Signed');
+          actor = districtTimeline?.by || 'District Nodal Officer (Collectorate)';
+          remarks = application.districtRemarks || districtTimeline?.title || 'Officially verified & endorsed by District Collectorate to State Sanction Directorate.';
+        } else if (state === 'current') {
+          dateStr = 'Under District Officer Verification';
+          actor = 'District Nodal Administration';
+          remarks = 'Application dossier received at District Desk awaiting quota verification and endorsement sign-off.';
+        } else {
+          dateStr = 'Pending District Verification';
+          actor = 'District Nodal Officer';
+          remarks = 'Awaiting field scrutiny completion before district officer verification.';
         }
-        actor = application.verifierName || 'Field Scrutiny Officer';
-        remarks = application.verifierRemarks || remarks || 'All submitted documents audited & passed eligibility criteria.';
       } else if (stKey === 'APPROVED') {
         if (state === 'completed' && application.approvalDate) {
           dateStr = new Date(application.approvalDate).toLocaleString('en-IN', {
@@ -180,7 +211,7 @@ Scheme Applied      : ${application.schemeTitle}
 Grant Requested     : ₹${Number(application.requestedAmount || 0).toLocaleString('en-IN')}
 Sanctioned Amount   : ${application.approvedAmount ? `₹${Number(application.approvedAmount).toLocaleString('en-IN')}` : 'Under Evaluation'}
 Application Status  : ${application.status}
-Verification Officer: ${application.verifierName || 'Anil Sharma (Field Inspector)'}
+Verification Officer: ${(application.verifierName && application.verifierName !== 'Anil Sharma') ? application.verifierName : 'Sahana (Field Inspector)'}
 Officer Remarks     : ${application.verifierRemarks || 'Under routine scrutiny.'}
 PFMS Txn Reference  : ${application.transactionId || 'Pending disbursement generation'}
 Bank Account        : ${application.bankDetails?.bankName || 'State Bank of India'} (Acc: ${application.bankDetails?.accountNumber || '•••• 4589'})
@@ -342,8 +373,12 @@ Official Portal: https://dsga.gov.in | Toll-Free: 1800-11-2026
                 ? 'Grant Successfully Disbursed to Bank Account via PFMS!'
                 : application.status === 'APPROVED'
                 ? 'Sanction Order Authorized — Queued for Direct Bank Transfer (DBT)'
+                : (application.status === 'DISTRICT_VERIFICATION' || application.status === 'DISTRICT_REVIEW')
+                ? 'Field Inspection Cleared — Under District Officer Verification'
                 : application.status === 'VERIFIED'
-                ? 'Documents & Certificates Verified — Under Sanction Directorate Review'
+                ? (isEndorsed
+                    ? 'District Quota Endorsed — Under Sanction Directorate Review'
+                    : 'Field Scrutiny Passed — Under District Officer Verification')
                 : 'Application Under Routine Field Verification & Scrutiny'}
             </div>
             
@@ -352,6 +387,12 @@ Official Portal: https://dsga.gov.in | Toll-Free: 1800-11-2026
                 ? application.verifierRemarks || 'Applicant credentials did not fulfill the statutory scheme requirements. You can appeal via Grievance Redressal or submit a fresh revised application.'
                 : application.status === 'PAID'
                 ? `Direct Benefit Transfer of ₹${Number(application.approvedAmount || application.requestedAmount || 0).toLocaleString('en-IN')} has been completed to ${application.bankDetails?.bankName || 'Beneficiary Bank Account'}. Transaction reference: ${application.transactionId || 'PFMS-DBT-SUCCESS'}.`
+                : (application.status === 'DISTRICT_VERIFICATION' || application.status === 'DISTRICT_REVIEW')
+                ? 'Field officer document inspection and eligibility check passed. Application is currently under District Officer Verification & quota endorsement.'
+                : application.status === 'VERIFIED'
+                ? (isEndorsed
+                    ? 'Application has received District Collectorate quota endorsement and is forwarded to State Sanction Directorate.'
+                    : 'Documents and field eligibility verified by inspector. Application is awaiting District Officer Verification.')
                 : application.verifierRemarks || 'Field verification officer is scrutinizing uploaded identity, caste, land, and income records against official state registry databases.'}
             </p>
           </div>
