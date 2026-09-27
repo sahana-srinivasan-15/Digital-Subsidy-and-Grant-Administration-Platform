@@ -411,7 +411,7 @@ export const Login = ({ onLoginSuccess, onExploreSchemes }) => {
                       const Icon = p.icon;
                       const isSel = selectedRole === p.role;
                       return (
-                        <div key={p.role} className="relative">
+                        <div key={p.role} className="relative h-full">
                           <button
                             type="button"
                             id={`role-btn-${p.role.toLowerCase()}`}
@@ -422,7 +422,7 @@ export const Login = ({ onLoginSuccess, onExploreSchemes }) => {
                               setPassword('');
                               if (errorMessage) setErrorMessage('');
                             }}
-                            className={`group w-full p-3 rounded-xl border text-center transition-all duration-200 cursor-pointer ${
+                            className={`group w-full h-full flex flex-col items-center justify-center px-1.5 py-2.5 sm:px-2 sm:py-3 rounded-xl border text-center transition-all duration-200 cursor-pointer ${
                               isSel
                                 ? 'bg-[#17324D] text-white border-[#17324D] shadow-xs ring-2 ring-[#D97706]/50 scale-[1.02]'
                                 : 'bg-[#F8FAFC] border-[#CBD5E1] hover:bg-[#17324D] hover:border-[#17324D] hover:shadow-md'
@@ -438,7 +438,7 @@ export const Login = ({ onLoginSuccess, onExploreSchemes }) => {
                               />
                             </div>
                             <div
-                              className={`text-xs font-bold truncate leading-tight font-heading transition-colors duration-200 ${
+                              className={`text-[11px] sm:text-xs font-bold leading-tight font-heading break-words text-center transition-colors duration-200 ${
                                 isSel
                                   ? 'text-white'
                                   : 'text-[#17324D] group-hover:text-white'
