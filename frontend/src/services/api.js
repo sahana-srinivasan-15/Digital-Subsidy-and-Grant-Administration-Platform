@@ -6,7 +6,7 @@
 
 const API_BASE_URL = typeof window !== 'undefined' && (window.location.port === '8080' || window.location.pathname.startsWith('/api'))
   ? '/api'
-  : 'http://localhost:8080/api';
+  : 'https://digital-subsidy-backend.onrender.com/api';
 
 class ApiService {
   static getToken() {
