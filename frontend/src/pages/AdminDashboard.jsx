@@ -21,7 +21,8 @@ import {
   Check,
   Trash2,
   UserPlus,
-  Shield
+  Shield,
+  Building2
 } from 'lucide-react';
 
 export const AdminDashboard = ({ activeTab = 'dashboard', setActiveTab: setParentActiveTab }) => {
@@ -34,7 +35,8 @@ export const AdminDashboard = ({ activeTab = 'dashboard', setActiveTab: setParen
     deleteScheme,
     addUser,
     removeUser,
-    currentUser
+    currentUser,
+    showToast
   } = useApp();
 
   // Internal tab state: 'PULSE' (default), 'USERS'
@@ -83,27 +85,19 @@ export const AdminDashboard = ({ activeTab = 'dashboard', setActiveTab: setParen
     return matchesSearch && matchesCat && matchesStatus;
   });
 
-  const filteredUsers = uniqueUsers.filter(u => {
-    const matchesSearch = (u.name || '').toLowerCase().includes(userSearch.toLowerCase()) ||
-                          (u.email || '').toLowerCase().includes(userSearch.toLowerCase()) ||
-                          (u.role || '').toLowerCase().includes(userSearch.toLowerCase()) ||
-                          (u.department || u.district || '').toLowerCase().includes(userSearch.toLowerCase());
-
+  const districtOfficerCount = uniqueUsers.filter(u => {
     const r = (u.role || '').toUpperCase();
-    let matchesRole = true;
-    if (userRoleFilter === 'CITIZENS') {
-      matchesRole = r === 'APPLICANT' || r === 'CITIZEN' || r === 'BENEFICIARY';
-    } else if (userRoleFilter === 'OFFICERS') {
-      matchesRole = r === 'VERIFIER' || r === 'DISTRICT_OFFICER' || r === 'AUTHORITY';
-    } else if (userRoleFilter === 'ADMIN') {
-      matchesRole = r === 'ADMINISTRATOR' || r === 'ADMIN' || r === 'CHIEF_ADMINISTRATOR';
-    }
-    return matchesSearch && matchesRole;
-  });
+    return r === 'DISTRICT_OFFICER' || r === 'DISTRICT' || r === 'DISTRICT_NODAL_OFFICER';
+  }).length;
 
-  const officerCount = uniqueUsers.filter(u => {
+  const verifierCount = uniqueUsers.filter(u => {
     const r = (u.role || '').toUpperCase();
-    return r === 'VERIFIER' || r === 'DISTRICT_OFFICER' || r === 'AUTHORITY';
+    return r === 'VERIFIER';
+  }).length;
+
+  const authorityCount = uniqueUsers.filter(u => {
+    const r = (u.role || '').toUpperCase();
+    return r === 'AUTHORITY';
   }).length;
 
   const citizenCount = uniqueUsers.filter(u => {
@@ -115,6 +109,28 @@ export const AdminDashboard = ({ activeTab = 'dashboard', setActiveTab: setParen
     const r = (u.role || '').toUpperCase();
     return r === 'ADMINISTRATOR' || r === 'ADMIN' || r === 'CHIEF_ADMINISTRATOR';
   }).length;
+
+  const officerCount = districtOfficerCount + verifierCount + authorityCount;
+
+  const filteredUsers = uniqueUsers.filter(u => {
+    const matchesSearch = (u.name || '').toLowerCase().includes(userSearch.toLowerCase()) ||
+                          (u.email || '').toLowerCase().includes(userSearch.toLowerCase()) ||
+                          (u.role || '').toLowerCase().includes(userSearch.toLowerCase()) ||
+                          (u.department || u.district || '').toLowerCase().includes(userSearch.toLowerCase());
+
+    const r = (u.role || '').toUpperCase();
+    let matchesRole = true;
+    if (userRoleFilter === 'CITIZENS') {
+      matchesRole = r === 'APPLICANT' || r === 'CITIZEN' || r === 'BENEFICIARY';
+    } else if (userRoleFilter === 'DISTRICT_OFFICER') {
+      matchesRole = r === 'DISTRICT_OFFICER' || r === 'DISTRICT' || r === 'DISTRICT_NODAL_OFFICER';
+    } else if (userRoleFilter === 'OFFICERS') {
+      matchesRole = r === 'VERIFIER' || r === 'DISTRICT_OFFICER' || r === 'DISTRICT' || r === 'DISTRICT_NODAL_OFFICER' || r === 'AUTHORITY';
+    } else if (userRoleFilter === 'ADMIN') {
+      matchesRole = r === 'ADMINISTRATOR' || r === 'ADMIN' || r === 'CHIEF_ADMINISTRATOR';
+    }
+    return matchesSearch && matchesRole;
+  });
 
   // Financial aggregates
   const totalFundPool = schemes.reduce((sum, s) => sum + (Number(s.totalFund) || 0), 0);
@@ -159,12 +175,12 @@ export const AdminDashboard = ({ activeTab = 'dashboard', setActiveTab: setParen
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
       
-      {/* Top Navigation Tabs for Admin Desk (Only Pulse & Schemes, and User RBAC) */}
+      {/* Top Navigation Tabs for Admin Desk (Executive Pulse & User RBAC Directory) */}
       <div className="flex items-center justify-between border-b border-[#DDE3E7] pb-4">
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
           {[
             { id: 'PULSE', label: `Executive Pulse & Schemes (${schemes.length})`, icon: BarChart3 },
-            { id: 'USERS', label: `User & Officer RBAC (${uniqueUsers.length})`, icon: Users }
+            { id: 'USERS', label: `User & Officer RBAC Directory (${uniqueUsers.length})`, icon: Users }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = effectiveTab === tab.id;
@@ -656,12 +672,13 @@ export const AdminDashboard = ({ activeTab = 'dashboard', setActiveTab: setParen
       )}
 
       {/* ========================================================================= */}
+      {/* ========================================================================= */}
       {/* TAB 2: USER & OFFICER RBAC DIRECTORY                                      */}
       {/* ========================================================================= */}
       {effectiveTab === 'USERS' && (
         <div className="space-y-6 animate-fade-in">
           
-          {/* Header Banner (Contains the SINGLE + Add User / Officer Button) */}
+          {/* Header Banner */}
           <div className="bg-[#17324D] p-6 sm:p-8 rounded-2xl text-white shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-t-4 border-[#D97706]">
             <div className="space-y-1.5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0E2438] border border-[#D97706]/40 text-[#FFF3E0] text-xs font-semibold">
@@ -672,7 +689,7 @@ export const AdminDashboard = ({ activeTab = 'dashboard', setActiveTab: setParen
                 User & Officer RBAC Directory
               </h2>
               <p className="text-xs text-[#DDE3E7]">
-                Chief Administrator authority to onboard or de-provision citizen beneficiaries, scrutiny inspectors, and treasury sanction authorities.
+                Chief Administrator authority to onboard or de-provision citizen beneficiaries, district nodal officers, scrutiny inspectors, and inspect immutable audit logs.
               </p>
             </div>
 
@@ -686,159 +703,196 @@ export const AdminDashboard = ({ activeTab = 'dashboard', setActiveTab: setParen
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="stat-box">
-              <div className="text-[#526270] text-xs font-semibold uppercase tracking-wider mb-1">Total Registered</div>
-              <div className="text-2xl font-extrabold text-[#17324D] font-heading">{uniqueUsers.length} Personnel</div>
-              <div className="text-[11px] text-[#287C5A] font-bold mt-1">Platform-wide credentials</div>
-            </div>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+                <div className="stat-box">
+                  <div className="text-[#526270] text-[11px] font-semibold uppercase tracking-wider mb-1">Total Registered</div>
+                  <div className="text-2xl font-extrabold text-[#17324D] font-heading">{uniqueUsers.length}</div>
+                  <div className="text-[10px] text-[#287C5A] font-bold mt-1">Platform Credentials</div>
+                </div>
 
-            <div className="stat-box">
-              <div className="text-[#526270] text-xs font-semibold uppercase tracking-wider mb-1">Officers & Authorities</div>
-              <div className="text-2xl font-extrabold text-[#17324D] font-heading">{officerCount} Officers</div>
-              <div className="text-[11px] text-[#D97706] font-bold mt-1">Field Verifiers & Sanction Desks</div>
-            </div>
+                <div className="stat-box border-l-4 border-l-[#1D4ED8] bg-[#F0F7FF]/50">
+                  <div className="text-[#1D4ED8] text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Building2 className="w-3.5 h-3.5" />
+                    <span>District Nodal</span>
+                  </div>
+                  <div className="text-2xl font-extrabold text-[#1D4ED8] font-heading">{districtOfficerCount} Officer{districtOfficerCount !== 1 ? 's' : ''}</div>
+                  <div className="text-[10px] text-[#1D4ED8] font-semibold mt-1">District Magistrate Nodal Desks</div>
+                </div>
 
-            <div className="stat-box">
-              <div className="text-[#526270] text-xs font-semibold uppercase tracking-wider mb-1">Citizen Applicants</div>
-              <div className="text-2xl font-extrabold text-[#287C5A] font-heading">{citizenCount} Citizens</div>
-              <div className="text-[11px] text-[#287C5A] font-bold mt-1">Beneficiary Accounts</div>
-            </div>
+                <div className="stat-box">
+                  <div className="text-[#526270] text-[11px] font-semibold uppercase tracking-wider mb-1">Field & Sanctions</div>
+                  <div className="text-2xl font-extrabold text-[#17324D] font-heading">{verifierCount + authorityCount} Officers</div>
+                  <div className="text-[10px] text-[#D97706] font-bold mt-1">Verifiers & Authorities</div>
+                </div>
 
-            <div className="stat-box">
-              <div className="text-[#526270] text-xs font-semibold uppercase tracking-wider mb-1">Executive Administrators</div>
-              <div className="text-2xl font-extrabold text-[#7C3AED] font-heading">{adminCount} Admins</div>
-              <div className="text-[11px] text-[#526270] font-bold mt-1">Full System Governance</div>
-            </div>
-          </div>
+                <div className="stat-box">
+                  <div className="text-[#526270] text-[11px] font-semibold uppercase tracking-wider mb-1">Citizen Applicants</div>
+                  <div className="text-2xl font-extrabold text-[#287C5A] font-heading">{citizenCount} Citizens</div>
+                  <div className="text-[10px] text-[#287C5A] font-bold mt-1">Beneficiary Accounts</div>
+                </div>
 
-          {/* Search & Filter Bar */}
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#DDE3E7] shadow-xs space-y-3.5">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-              
-              {/* Search Box */}
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 text-[#7C8992] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Search personnel by name, official email, role, or jurisdiction..."
-                  value={userSearch}
-                  onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#DDE3E7] rounded-xl !pl-11 pr-4 py-2.5 text-xs text-[#17324D] placeholder-[#7C8992] focus:outline-none focus:border-[#17324D] shadow-xs"
-                  style={{ paddingLeft: '2.75rem' }}
-                />
+                <div className="stat-box">
+                  <div className="text-[#526270] text-[11px] font-semibold uppercase tracking-wider mb-1">Administrators</div>
+                  <div className="text-2xl font-extrabold text-[#7C3AED] font-heading">{adminCount} Admins</div>
+                  <div className="text-[10px] text-[#526270] font-bold mt-1">Full System Governance</div>
+                </div>
               </div>
 
-              {/* Role Category Pills */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1">
-                {[
-                  { id: 'ALL', label: `All Personnel (${uniqueUsers.length})` },
-                  { id: 'OFFICERS', label: `Officers (${officerCount})` },
-                  { id: 'CITIZENS', label: `Citizens (${citizenCount})` },
-                  { id: 'ADMIN', label: `Administrators (${adminCount})` }
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setUserRoleFilter(tab.id)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer ${
-                      userRoleFilter === tab.id
-                        ? 'bg-[#17324D] text-white shadow-xs'
-                        : 'bg-[#F8FAFC] text-[#526270] hover:text-[#17324D] hover:bg-[#EBF2F7] border border-[#DDE3E7]'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+              {/* Search & Filter Bar */}
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#DDE3E7] shadow-xs space-y-3.5">
+                <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                  
+                  {/* Search Box */}
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-[#7C8992] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search personnel by name (e.g. Kavitha Rao), official email, role, or jurisdiction..."
+                      value={userSearch}
+                      onChange={(e) => setUserSearch(e.target.value)}
+                      className="w-full bg-[#F8FAFC] border border-[#DDE3E7] rounded-xl !pl-11 pr-4 py-2.5 text-xs text-[#17324D] placeholder-[#7C8992] focus:outline-none focus:border-[#17324D] shadow-xs"
+                      style={{ paddingLeft: '2.75rem' }}
+                    />
+                  </div>
+
+                  {/* Role Category Pills */}
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1">
+                    {[
+                      { id: 'ALL', label: `All Personnel (${uniqueUsers.length})` },
+                      { id: 'DISTRICT_OFFICER', label: `District Officers (${districtOfficerCount})`, icon: Building2 },
+                      { id: 'OFFICERS', label: `All Officers (${officerCount})` },
+                      { id: 'CITIZENS', label: `Citizens (${citizenCount})` },
+                      { id: 'ADMIN', label: `Administrators (${adminCount})` }
+                    ].map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setUserRoleFilter(tab.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                          userRoleFilter === tab.id
+                            ? 'bg-[#17324D] text-white shadow-xs'
+                            : 'bg-[#F8FAFC] text-[#526270] hover:text-[#17324D] hover:bg-[#EBF2F7] border border-[#DDE3E7]'
+                        }`}
+                      >
+                        {tab.icon && <tab.icon className="w-3.5 h-3.5" />}
+                        <span>{tab.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Personnel Table */}
-          <div className="bg-white rounded-2xl border border-[#DDE3E7] shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-[#526270]">
-                <thead className="bg-[#17324D] text-white uppercase font-bold text-[11px] font-heading">
-                  <tr>
-                    <th className="px-6 py-4">User / Officer</th>
-                    <th className="px-6 py-4">Official Email</th>
-                    <th className="px-6 py-4">Assigned Role</th>
-                    <th className="px-6 py-4">Jurisdiction / Dept</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4 text-right">Chief Admin Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#DDE3E7] bg-white">
-                  {filteredUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-[#526270]">
-                        <Users className="w-8 h-8 text-[#7C8992] mx-auto opacity-50 mb-2" />
-                        <span className="font-semibold block">No personnel found matching the filter criteria.</span>
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredUsers.map(u => {
-                      const isSelf = (currentUser?.email && u.email && currentUser.email.toLowerCase() === u.email.toLowerCase()) ||
-                                     (currentUser?.id && u.id && String(currentUser.id) === String(u.id));
-
-                      return (
-                        <tr key={u.id} className="hover:bg-[#F8FAFC] transition">
-                          <td className="px-6 py-4 font-bold text-[#17324D] flex items-center gap-3">
-                            <img
-                              src={getSafeAvatar(u)}
-                              alt={u.name}
-                              onError={(e) => { e.currentTarget.src = getSafeAvatar(u.name, u.role); }}
-                              className="w-8 h-8 rounded-lg object-cover border border-[#DDE3E7]"
-                            />
-                            <div>
-                              <span>{u.name}</span>
-                              {u.phone && <span className="block text-[10px] text-[#7C8992] font-normal font-mono">{u.phone}</span>}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-[#526270] font-mono">{u.email}</td>
-                          <td className="px-6 py-4">
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-mono font-bold border ${
-                              u.role === 'ADMINISTRATOR' || u.role === 'ADMIN'
-                                ? 'bg-[#F3E8FF] text-[#7C3AED] border-[#7C3AED]/30'
-                                : u.role === 'AUTHORITY'
-                                ? 'bg-[#FFF8E6] text-[#D97706] border-[#D97706]/30'
-                                : u.role === 'DISTRICT_OFFICER'
-                                ? 'bg-[#EFF6FF] text-[#1D4ED8] border-[#1D4ED8]/30'
-                                : u.role === 'VERIFIER'
-                                ? 'bg-[#EBF2F7] text-[#17324D] border-[#17324D]/30'
-                                : 'bg-[#EAF5EF] text-[#287C5A] border-[#287C5A]/30'
-                            }`}>
-                              {u.role}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-[#17324D] font-medium">{u.department || u.district || 'National Platform'}</td>
-                          <td className="px-6 py-4"><StatusBadge status="ACTIVE" /></td>
-                          <td className="px-6 py-4 text-right">
-                            {isSelf ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold text-[#287C5A] bg-[#EAF5EF] border border-[#287C5A]/30 rounded-lg">
-                                <Check className="w-3 h-3" />
-                                <span>Active Session</span>
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => setUserToDelete(u)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#B84040] hover:bg-[#FDF2F2] border border-[#B84040]/30 transition cursor-pointer shadow-xs"
-                                title={`Remove ${u.name} from system`}
-                              >
-                                <Trash2 className="w-3.5 h-3.5 text-[#B84040]" />
-                                <span>Remove</span>
-                              </button>
-                            )}
+              {/* Personnel Table */}
+              <div className="bg-white rounded-2xl border border-[#DDE3E7] shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-[#526270]">
+                    <thead className="bg-[#17324D] text-white uppercase font-bold text-[11px] font-heading">
+                      <tr>
+                        <th className="px-6 py-4">User / Officer</th>
+                        <th className="px-6 py-4">Official Email</th>
+                        <th className="px-6 py-4">Assigned Role</th>
+                        <th className="px-6 py-4">Jurisdiction / Dept</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4 text-right">Chief Admin Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#DDE3E7] bg-white">
+                      {filteredUsers.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-12 text-center text-[#526270]">
+                            <Users className="w-8 h-8 text-[#7C8992] mx-auto opacity-50 mb-2" />
+                            <span className="font-semibold block">No personnel found matching the filter criteria.</span>
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                      ) : (
+                        filteredUsers.map(u => {
+                          const isSelf = (currentUser?.email && u.email && currentUser.email.toLowerCase() === u.email.toLowerCase()) ||
+                                         (currentUser?.id && u.id && String(currentUser.id) === String(u.id));
+                          const isDistrictOfficer = u.role === 'DISTRICT_OFFICER' || u.role === 'DISTRICT';
 
-        </div>
+                          return (
+                            <tr key={u.id} className={`transition ${isDistrictOfficer ? 'bg-[#F0F7FF]/30 hover:bg-[#F0F7FF]/60' : 'hover:bg-[#F8FAFC]'}`}>
+                              <td className="px-6 py-4 font-bold text-[#17324D] flex items-center gap-3">
+                                {isDistrictOfficer ? (
+                                  <div className="w-9 h-9 rounded-xl bg-[#EFF6FF] border border-[#1D4ED8]/30 text-[#1D4ED8] flex items-center justify-center font-bold text-xs shadow-2xs flex-shrink-0" title="District Nodal Officer">
+                                    <Building2 className="w-5 h-5 text-[#1D4ED8]" />
+                                  </div>
+                                ) : (
+                                  <img
+                                    src={getSafeAvatar(u)}
+                                    alt={u.name}
+                                    onError={(e) => { e.currentTarget.src = getSafeAvatar(u.name, u.role); }}
+                                    className="w-9 h-9 rounded-xl object-cover border border-[#DDE3E7]"
+                                  />
+                                )}
+                                <div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[#17324D] font-bold text-xs">{u.name}</span>
+                                    {isDistrictOfficer && (
+                                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#EFF6FF] text-[#1D4ED8] font-bold border border-[#1D4ED8]/30">
+                                        Nodal Head
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="block text-[11px] text-[#7C8992] font-normal font-mono">
+                                    {u.phone || '+91 98765 33445'}
+                                  </span>
+                                  {u.designation && (
+                                    <span className="block text-[10px] text-[#1D4ED8] font-medium">
+                                      {u.designation}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-[#526270] font-mono text-xs font-semibold">{u.email}</td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-mono font-bold border ${
+                                  u.role === 'ADMINISTRATOR' || u.role === 'ADMIN'
+                                    ? 'bg-[#F3E8FF] text-[#7C3AED] border-[#7C3AED]/30'
+                                    : u.role === 'AUTHORITY'
+                                    ? 'bg-[#FFF8E6] text-[#D97706] border-[#D97706]/30'
+                                    : isDistrictOfficer
+                                    ? 'bg-[#EFF6FF] text-[#1D4ED8] border-[#1D4ED8]/40 shadow-2xs'
+                                    : u.role === 'VERIFIER'
+                                    ? 'bg-[#EBF2F7] text-[#17324D] border-[#17324D]/30'
+                                    : 'bg-[#EAF5EF] text-[#287C5A] border-[#287C5A]/30'
+                                }`}>
+                                  {isDistrictOfficer && <Building2 className="w-3 h-3 text-[#1D4ED8]" />}
+                                  <span>{isDistrictOfficer ? 'DISTRICT_OFFICER' : u.role}</span>
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-[#17324D] font-medium">
+                                <div className="text-xs">{u.department || u.district || 'National Platform'}</div>
+                                {u.district && u.department && (
+                                  <div className="text-[10px] text-[#7C8992]">{u.district} District</div>
+                                )}
+                              </td>
+                              <td className="px-6 py-4"><StatusBadge status="ACTIVE" /></td>
+                              <td className="px-6 py-4 text-right">
+                                {isSelf ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold text-[#287C5A] bg-[#EAF5EF] border border-[#287C5A]/30 rounded-lg">
+                                    <Check className="w-3 h-3" />
+                                    <span>Active Session</span>
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => setUserToDelete(u)}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#B84040] hover:bg-[#FDF2F2] border border-[#B84040]/30 transition cursor-pointer shadow-2xs"
+                                    title={`Remove ${u.name} from system`}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5 text-[#B84040]" />
+                                    <span>Remove</span>
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+          </div>
       )}
 
       {/* ========================================================================= */}

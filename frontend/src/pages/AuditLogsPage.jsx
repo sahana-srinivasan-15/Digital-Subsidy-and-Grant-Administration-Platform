@@ -107,6 +107,7 @@ export const AuditLogsPage = () => {
             className="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none"
           >
             <option value="ALL">All Categories</option>
+            <option value="DISTRICT_ENDORSEMENT">District Endorsements</option>
             <option value="SANCTION_APPROVED">Sanctions</option>
             <option value="DOCS_VERIFIED">Verifications</option>
             <option value="SCHEME_CREATED">Scheme Creation</option>
@@ -120,6 +121,7 @@ export const AuditLogsPage = () => {
             className="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none"
           >
             <option value="ALL">All Roles</option>
+            <option value="DISTRICT_OFFICER">District Officer</option>
             <option value="APPLICANT">Applicant</option>
             <option value="VERIFIER">Verifier</option>
             <option value="AUTHORITY">Authority</option>

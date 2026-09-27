@@ -70,7 +70,6 @@ export const initialUsers = [
     department: 'Office of the District Magistrate & Collector',
     designation: 'District Nodal Officer & Additional District Magistrate',
     district: 'Medak',
-    avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=250',
     status: 'ACTIVE'
   },
   {
@@ -848,8 +847,9 @@ export const initialNotifications = [
 ];
 
 export const initialAuditLogs = [
-  { id: 'log-1', timestamp: '2026-09-08 16:45:00', actor: 'DBT Payment System', action: 'PAYMENT_DISBURSED', details: 'Transferred ₹40,000 to APP-2026-1026 (Txn: TXN-DBT-2026-89481920)', ip: '10.0.4.12' },
-  { id: 'log-2', timestamp: '2026-09-07 10:15:00', actor: 'Dr. Priya Varma (Authority)', action: 'SANCTION_APPROVED', details: 'Approved ₹40,000 grant for APP-2026-1026', ip: '10.0.2.88' },
-  { id: 'log-3', timestamp: '2026-09-06 15:30:00', actor: 'Anil Sharma (Verifier)', action: 'DOCUMENTS_VERIFIED', details: 'Verified all attached student records for APP-2026-1026', ip: '10.0.1.45' },
-  { id: 'log-4', timestamp: '2026-09-05 09:10:00', actor: 'Vikram Singh (Applicant)', action: 'APPLICATION_SUBMITTED', details: 'Created and submitted APP-2026-1026', ip: '182.74.12.9' }
+  { id: 'log-0', timestamp: '2026-09-08 17:15:00', actor: 'Kavitha Rao, IAS (District Officer)', actorName: 'Kavitha Rao, IAS', actorRole: 'DISTRICT_OFFICER', eventCategory: 'DISTRICT_ENDORSEMENT', action: 'DISTRICT_ENDORSEMENT', details: 'Endorsed Medak district quota for APP-2026-1024 to State Directorate', ip: '10.0.3.15', ipAddress: '10.0.3.15', severity: 'INFO' },
+  { id: 'log-1', timestamp: '2026-09-08 16:45:00', actor: 'DBT Payment System', actorName: 'DBT Payment System', actorRole: 'ADMINISTRATOR', eventCategory: 'DBT_DISBURSED', action: 'PAYMENT_DISBURSED', details: 'Transferred ₹40,000 to APP-2026-1026 (Txn: TXN-DBT-2026-89481920)', ip: '10.0.4.12', ipAddress: '10.0.4.12', severity: 'INFO' },
+  { id: 'log-2', timestamp: '2026-09-07 10:15:00', actor: 'Dr. Priya Varma (Authority)', actorName: 'Dr. Priya Varma', actorRole: 'AUTHORITY', eventCategory: 'SANCTION_APPROVED', action: 'SANCTION_APPROVED', details: 'Approved ₹40,000 grant for APP-2026-1026', ip: '10.0.2.88', ipAddress: '10.0.2.88', severity: 'INFO' },
+  { id: 'log-3', timestamp: '2026-09-06 15:30:00', actor: 'Anil Sharma (Verifier)', actorName: 'Anil Sharma', actorRole: 'VERIFIER', eventCategory: 'DOCS_VERIFIED', action: 'DOCUMENTS_VERIFIED', details: 'Verified all attached student records for APP-2026-1026', ip: '10.0.1.45', ipAddress: '10.0.1.45', severity: 'INFO' },
+  { id: 'log-4', timestamp: '2026-09-05 09:10:00', actor: 'Vikram Singh (Applicant)', actorName: 'Vikram Singh', actorRole: 'APPLICANT', eventCategory: 'APPLICATION_SUBMITTED', action: 'APPLICATION_SUBMITTED', details: 'Created and submitted APP-2026-1026', ip: '182.74.12.9', ipAddress: '182.74.12.9', severity: 'INFO' }
 ];

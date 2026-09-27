@@ -133,6 +133,17 @@ export const initialSchemeBudgets = [
 
 export const initialAuditLogs = [
   {
+    id: 'LOG-99121',
+    timestamp: '2026-09-12T15:30:00Z',
+    actorName: 'Kavitha Rao, IAS',
+    actorRole: 'DISTRICT_OFFICER',
+    eventCategory: 'DISTRICT_ENDORSEMENT',
+    action: 'District Collectorate Quota Endorsement Signed for #APP-2026-1024',
+    details: 'Verified Medak district revenue records, endorsed subsidy allocation, and forwarded dossier to State Sanction Directorate.',
+    ipAddress: '10.14.77.10',
+    severity: 'INFO'
+  },
+  {
     id: 'LOG-99120',
     timestamp: '2026-09-12T14:45:10Z',
     actorName: 'Dr. Priya Varma',

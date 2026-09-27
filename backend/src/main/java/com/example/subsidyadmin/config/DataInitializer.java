@@ -42,15 +42,20 @@ public class DataInitializer implements CommandLineRunner {
         // 1. Seed Roles
         Role applicantRole = getOrCreateRole("APPLICANT");
         Role verifierRole = getOrCreateRole("VERIFIER");
+        Role districtRole = getOrCreateRole("DISTRICT_OFFICER");
         Role authorityRole = getOrCreateRole("AUTHORITY");
         Role adminRole = getOrCreateRole("ADMINISTRATOR");
 
         // 2. Seed Users with updated credentials
         User applicant = getOrCreateUser("applicant@gov.in", "Rahul Kumar", "password123", applicantRole, "+91 98765 43210", "Medak District, Telangana");
         User sahana = getOrCreateUser("sahana@gmail.com", "Sahana", "sahana$45", verifierRole, "+91 98765 11223", "Field Verification Directorate");
+        User kavitha = getOrCreateUser("kavitha@gmail.com", "Kavitha Rao, IAS", "kavitha$123", districtRole, "+91 98765 33445", "Office of the District Magistrate & Collector, Medak");
         User mayur = getOrCreateUser("mayur@gmail.com", "Mayur", "mayur%34", authorityRole, "+91 98765 44556", "State Grant Sanctioning Directorate");
         User sachin = getOrCreateUser("sachin@gmail.com", "Sachin", "sachin", adminRole, "+91 98765 99887", "Ministry of Digital Governance");
         User admin = sachin;
+        User verifier = sahana;
+        User authority = mayur;
+        User districtOfficer = kavitha;
         User applicant2 = getOrCreateUser("kavitha.rao@enterprise.org", "Kavitha Rao", "password123", applicantRole, "+91 99120 44819", "Warangal District, Telangana");
 
         // 3. Seed Schemes
@@ -112,6 +117,10 @@ public class DataInitializer implements CommandLineRunner {
             // Sanction Officer (Dr. Priya Varma)
             createAccountNotification(authority, "Sanction Approval Pending",
                     "Application APP-2026-1025 has been verified by Inspector Anil Sharma and is awaiting sanction approval.", "SUCCESS");
+
+            // District Nodal Officer (Kavitha Rao, IAS)
+            createAccountNotification(districtOfficer, "District Endorsement Queue Update",
+                    "Application APP-2026-1024 has passed taluk verification and awaits Medak district endorsement.", "INFO");
 
             // Chief Admin Officer
             createAccountNotification(admin, "Monthly Fund Utilization Alert",

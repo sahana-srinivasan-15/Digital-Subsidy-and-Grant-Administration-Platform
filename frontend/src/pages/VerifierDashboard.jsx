@@ -83,43 +83,6 @@ export const VerifierDashboard = ({ activeTab = 'dashboard', setActiveTab }) => 
         </div>
       </div>
 
-      {/* Primary Sub-Nav Pill Bar */}
-      <div className="bg-white p-3 rounded-2xl border border-[#DDE3E7] shadow-xs flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {[
-            { id: 'dashboard', label: 'Verification Center', icon: CheckSquare, badge: pendingCount },
-            { id: 'queue', label: 'Assigned Workload', icon: Layers, badge: queueApps.length },
-            { id: 'history', label: 'Scrutiny Audit Logs', icon: FileText, badge: verifierLogs.length }
-          ].map(t => {
-            const Icon = t.icon;
-            const isActive = currentTab === t.id || (currentTab === 'verification' && t.id === 'dashboard') || (currentTab === 'workload' && t.id === 'queue') || (currentTab === 'logs' && t.id === 'history');
-            return (
-              <button
-                key={t.id}
-                onClick={() => setActiveTab ? setActiveTab(t.id) : null}
-                className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs font-extrabold transition-all ${
-                  isActive
-                    ? 'bg-[#17324D] text-white shadow-md'
-                    : 'text-[#526270] hover:text-[#17324D] hover:bg-[#F8FAFC]'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-[#D97706]' : 'text-[#526270]'}`} />
-                <span>{t.label}</span>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                  isActive ? 'bg-[#D97706] text-white' : 'bg-[#F8FAFC] text-[#526270] border border-[#DDE3E7]'
-                }`}>
-                  {t.badge}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex items-center gap-2 pr-2 text-xs font-bold text-[#526270]">
-          <span>Inspector Zone: <strong className="text-[#17324D]">Medak & Warangal Sector A</strong></span>
-        </div>
-      </div>
-
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="stat-box">

@@ -85,7 +85,8 @@ export const deduplicateUsers = (userList) => {
   const legacyEmailMap = {
     'verifier@gov.in': 'sahana@gmail.com',
     'authority@gov.in': 'mayur@gmail.com',
-    'admin@gov.in': 'sachin@gmail.com'
+    'admin@gov.in': 'sachin@gmail.com',
+    'district@gov.in': 'kavitha@gmail.com'
   };
 
   // Sort so canonical accounts take precedence over legacy aliases
@@ -139,13 +140,19 @@ export const AppProvider = ({ children }) => {
   // Connection status with Spring Boot backend
   const [backendConnected, setBackendConnected] = useState(false);
 
-  // Load initial state from localStorage or seed data, ensuring strict deduplication
+  // Load initial state from localStorage or seed data, ensuring strict deduplication and preserving all official roles
   const [users, setUsers] = useState(() => {
     const saved = localStorage.getItem('gov_users');
     let loaded = initialUsers;
     if (saved) {
       try {
-        loaded = JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Merge any missing default personnel from initialUsers (e.g. DISTRICT_OFFICER Kavitha Rao)
+          const existingEmails = new Set(parsed.map(u => (u?.email || '').trim().toLowerCase()));
+          const missingDefaults = initialUsers.filter(u => !existingEmails.has((u?.email || '').trim().toLowerCase()));
+          loaded = [...parsed, ...missingDefaults];
+        }
       } catch (e) {
         loaded = initialUsers;
       }
@@ -154,10 +161,13 @@ export const AppProvider = ({ children }) => {
     try {
       localStorage.setItem('gov_users', JSON.stringify(sanitized));
     } catch {}
-    return sanitized.map(u => ({
-      ...u,
-      avatar: u.avatar && !u.avatar.includes('undefined') ? u.avatar : getSafeAvatar(u.name, u.role)
-    }));
+    return sanitized.map(u => {
+      const isDistrict = u.role === 'DISTRICT_OFFICER' || u.email === 'kavitha@gmail.com';
+      return {
+        ...u,
+        avatar: isDistrict ? null : (u.avatar && !u.avatar.includes('undefined') ? u.avatar : getSafeAvatar(u.name, u.role))
+      };
+    });
   });
 
   const [currentRole, setCurrentRole] = useState(() => {
@@ -181,11 +191,12 @@ export const AppProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(savedAuthUser);
         if (parsed && (parsed.email || parsed.name)) {
+          const isDistrict = parsed.role === 'DISTRICT_OFFICER' || parsed.email === 'kavitha@gmail.com';
           return {
             ...parsed,
-            avatar: parsed.avatar && !parsed.avatar.includes('undefined')
+            avatar: isDistrict ? null : (parsed.avatar && !parsed.avatar.includes('undefined')
               ? parsed.avatar
-              : getSafeAvatar(parsed.name, parsed.role || 'APPLICANT')
+              : getSafeAvatar(parsed.name, parsed.role || 'APPLICANT'))
           };
         }
       } catch (e) {
@@ -196,9 +207,10 @@ export const AppProvider = ({ children }) => {
     const savedUsers = localStorage.getItem('gov_users');
     const pool = savedUsers ? JSON.parse(savedUsers) : initialUsers;
     const user = pool.find(u => u.role === role) || pool[0];
+    const isDistrictUser = user?.role === 'DISTRICT_OFFICER' || user?.email === 'kavitha@gmail.com';
     return {
       ...user,
-      avatar: user?.avatar && !user.avatar.includes('undefined') ? user.avatar : getSafeAvatar(user?.name, user?.role || role)
+      avatar: isDistrictUser ? null : (user?.avatar && !user.avatar.includes('undefined') ? user.avatar : getSafeAvatar(user?.name, user?.role || role))
     };
   });
 
@@ -244,7 +256,20 @@ export const AppProvider = ({ children }) => {
 
   const [auditLogs, setAuditLogs] = useState(() => {
     const saved = localStorage.getItem('gov_audit_logs');
-    return saved ? JSON.parse(saved) : (initialAuditLogs || defaultAuditLogs);
+    const defaults = (initialAuditLogs && initialAuditLogs.length > 0) ? initialAuditLogs : defaultAuditLogs;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const existingIds = new Set(parsed.map(l => l.id));
+          const missingDefaults = defaults.filter(d => !existingIds.has(d.id));
+          return [...parsed, ...missingDefaults];
+        }
+      } catch (e) {
+        console.warn('Failed to parse saved audit logs:', e);
+      }
+    }
+    return defaults;
   });
 
   const [grievances, setGrievances] = useState(() => {
@@ -359,7 +384,7 @@ export const AppProvider = ({ children }) => {
                 role: liveRole,
                 phone: profile.phone || '',
                 district: profile.address || '',
-                avatar: getSafeAvatar(profile.name, liveRole),
+                avatar: (liveRole === 'DISTRICT_OFFICER' || profile.email === 'kavitha@gmail.com') ? null : getSafeAvatar(profile.name, liveRole),
                 token: ApiService.getToken()
               };
               setCurrentUser(liveUser);
@@ -554,15 +579,22 @@ export const AppProvider = ({ children }) => {
     syncBackend();
   }, []);
 
-  // Log system activity
+  // Log system activity with complete audit ledger attributes
   const addAuditLog = (action, details) => {
+    const actorName = currentUser?.name || 'Kavitha Rao, IAS';
+    const actorRole = currentUser?.role || currentRole || 'DISTRICT_OFFICER';
     const newLog = {
-      id: `log-${Date.now()}`,
-      timestamp: new Date().toLocaleString(),
-      actor: `${currentUser.name} (${currentUser.role})`,
-      action,
+      id: `LOG-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      actor: `${actorName} (${actorRole})`,
+      actorName,
+      actorRole,
+      eventCategory: action,
+      action: action.replace(/_/g, ' '),
       details,
-      ip: '127.0.0.1 (Session)'
+      ip: '10.14.77.10',
+      ipAddress: '10.14.77.10',
+      severity: action.includes('REJECT') || action.includes('WARN') ? 'WARN' : 'INFO'
     };
     setAuditLogs(prev => [newLog, ...prev]);
   };
@@ -687,13 +719,14 @@ export const AppProvider = ({ children }) => {
 
         const existingUser = users.find(u => u.email?.toLowerCase() === cleanEmail);
         const userName = res.name || existingUser?.name || 'Authenticated User';
+        const isDistrictOfficer = targetRole === 'DISTRICT_OFFICER' || cleanEmail === 'kavitha@gmail.com' || cleanEmail === 'district@gov.in';
         const loggedInUser = {
           id: res.userId ? `usr-${res.userId}` : (existingUser?.id || `usr-${Date.now()}`),
           backendId: res.userId,
           name: userName,
           email: res.email || cleanEmail,
           role: targetRole,
-          avatar: res.avatar || existingUser?.avatar || getSafeAvatar(userName, targetRole),
+          avatar: isDistrictOfficer ? null : (res.avatar || existingUser?.avatar || getSafeAvatar(userName, targetRole)),
           token: res.accessToken
         };
 
@@ -791,13 +824,14 @@ export const AppProvider = ({ children }) => {
 
       const targetRole = existingUser?.role || preset?.role || role || 'APPLICANT';
       const userName = existingUser?.name || preset?.name || 'Citizen User';
+      const isDistrict = targetRole === 'DISTRICT_OFFICER' || cleanEmail === 'kavitha@gmail.com' || cleanEmail === 'district@gov.in';
       setCurrentRole(targetRole);
       const loggedInUser = {
         id: existingUser?.id || `usr-${Date.now()}`,
         name: userName,
         email: cleanEmail,
         role: targetRole,
-        avatar: existingUser?.avatar || getSafeAvatar(userName, targetRole),
+        avatar: isDistrict ? null : (existingUser?.avatar || getSafeAvatar(userName, targetRole)),
         token: `local-jwt-${Date.now()}`
       };
       setCurrentUser(loggedInUser);
@@ -814,10 +848,12 @@ export const AppProvider = ({ children }) => {
         throw new Error('Invalid email address or password');
       }
       const targetRole = existingUser.role || role || 'APPLICANT';
+      const isDistrict = targetRole === 'DISTRICT_OFFICER' || cleanEmail === 'kavitha@gmail.com' || cleanEmail === 'district@gov.in';
       setCurrentRole(targetRole);
       const loggedInUser = {
         ...existingUser,
         role: targetRole,
+        avatar: isDistrict ? null : existingUser.avatar,
         token: `local-jwt-${Date.now()}`
       };
       setCurrentUser(loggedInUser);
@@ -847,13 +883,14 @@ export const AppProvider = ({ children }) => {
         throw new Error('Invalid email address or password');
       }
       const targetRole = preset.role;
+      const isDistrict = targetRole === 'DISTRICT_OFFICER' || cleanEmail === 'kavitha@gmail.com' || cleanEmail === 'district@gov.in';
       setCurrentRole(targetRole);
       const loggedInUser = {
         id: `usr-${Date.now()}`,
         name: preset.name,
         email: cleanEmail,
         role: targetRole,
-        avatar: getSafeAvatar(preset.name, targetRole),
+        avatar: isDistrict ? null : getSafeAvatar(preset.name, targetRole),
         token: `local-jwt-${Date.now()}`
       };
       setCurrentUser(loggedInUser);
@@ -1587,7 +1624,7 @@ export const AppProvider = ({ children }) => {
       district: userData.district || userData.department || 'National Platform',
       address: userData.address || userData.department || 'National Platform',
       status: 'ACTIVE',
-      avatar: getSafeAvatar(userData.name, userData.role),
+      avatar: (userData.role === 'DISTRICT_OFFICER' || userData.role === 'DISTRICT' || cleanEmail === 'kavitha@gmail.com') ? null : getSafeAvatar(userData.name, userData.role),
       createdAt: new Date().toISOString()
     };
 
